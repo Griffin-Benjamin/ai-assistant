@@ -1,0 +1,72 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+env/
+
+# ===== 依赖锁 =====
+backend/uv.lock
+
+# ===== 环境变量与密钥 =====
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ===== 数据库与本地数据 =====
+backend/db/
+backend/*.db
+backend/*.db-journal
+backend/*.db-shm
+backend/*.db-wal
+backend/*.sqlite
+backend/*.sqlite3
+mysql_data/
+redis_data/
+
+# ===== 向量库本地存储 =====
+backend/chroma_db/
+backend/vector_store/
+
+# ===== 上传文件 =====
+backend/uploads/
+backend/logs/
+
+# ===== 前端构建产物 =====
+web/dist/
+web/build/
+web/node_modules/
+web/.vite/
+
+# ===== 前端环境变量 =====
+web/.env
+web/.env.local
+
+# ===== IDE / 编辑器 =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== 操作系统 =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Trae 工作区元数据 =====
+.trae/

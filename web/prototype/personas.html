@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="volc">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>人格管理 - AI 学习助手</title>
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+          AI 学习助手
+        </h1>
+        <p>个人学习智能体</p>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="chat.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/></svg>
+          对话
+        </a>
+        <a href="knowledge.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/></svg>
+          知识库
+        </a>
+        <a href="tree.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2"/></svg>
+          知识树
+        </a>
+        <a href="personas.html" class="sidebar-nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+          人格
+        </a>
+        <a href="tasks.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2"/></svg>
+          任务
+        </a>
+        <a href="settings.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg>
+          设置
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Area -->
+    <div class="app-layout-main">
+      <!-- TopNav -->
+      <header class="topnav">
+        <div class="header-title">人格管理</div>
+        <div class="header-actions">
+          <button class="btn btn-secondary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            导入 md
+          </button>
+          <button class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            新建人格
+          </button>
+          <select id="theme-quick-select" class="select select-sm" onchange="if(window.ThemeSwitcher){ThemeSwitcher.switchTheme(this.value);}">
+            <option value="volc">Volc 主题</option>
+            <option value="nerv">Nerv 主题</option>
+            <option value="golden">Golden 主题</option>
+          </select>
+          <div class="avatar-md avatar-ring" style="background: var(--accent-primary); color: var(--text-inverse); font-weight: 600;">我</div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="app-content">
+        <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 20px 0; line-height: 1.6;">选择或自定义 AI 回复风格，让对话更贴合你的学习习惯。"自我" 人格会动态从三库（facts / style / thinking）抽取样本生成。</p>
+
+        <div class="personas-grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px;">
+          <!-- 自我 (is_self=True, 动态生成, 已激活) -->
+          <div class="card persona-card self active" style="border: 2px solid var(--persona-active-ring);">
+            <div class="avatar-md" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: var(--text-inverse); font-weight: 600; margin-bottom: 12px;">我</div>
+            <h3 style="font-size: 14px; font-weight: 500; margin: 0 0 6px 0; color: var(--text-primary);">自我</h3>
+            <div style="margin-bottom: 8px;"><span class="tag tag-neutral">动态生成</span></div>
+            <p>动态从三库（facts / style / thinking）抽取样本生成，模拟你的语言风格与思维逻辑</p>
+            <div style="display: flex; gap: 4px; justify-content: center; padding-top: 12px; border-top: 1px solid var(--border-primary);">
+              <button class="btn btn-secondary btn-sm">已激活</button>
+              <button class="btn btn-ghost btn-sm">编辑</button>
+              <button class="btn btn-ghost btn-sm">删除</button>
+            </div>
+          </div>
+
+          <!-- 费曼讲师 (预设, 费曼学习法风格) -->
+          <div class="card persona-card">
+            <div class="avatar-md" style="background: var(--color-warning-light); color: var(--color-warning); font-weight: 600; margin-bottom: 12px;">费</div>
+            <h3 style="font-size: 14px; font-weight: 500; margin: 0 0 6px 0; color: var(--text-primary);">费曼讲师</h3>
+            <div style="margin-bottom: 8px;"><span class="tag tag-info">预设</span></div>
+            <p>用通俗类比讲解概念，讲完后要求你用自己的话复述，验证是否真正理解</p>
+            <div style="display: flex; gap: 4px; justify-content: center; padding-top: 12px; border-top: 1px solid var(--border-primary);">
+              <button class="btn btn-primary btn-sm">激活</button>
+              <button class="btn btn-ghost btn-sm">编辑</button>
+              <button class="btn btn-ghost btn-sm">删除</button>
+            </div>
+          </div>
+
+          <!-- 温柔学姐 (预设, 鼓励式教学) -->
+          <div class="card persona-card">
+            <div class="avatar-md" style="background: var(--color-success-light); color: var(--color-success); font-weight: 600; margin-bottom: 12px;">温</div>
+            <h3 style="font-size: 14px; font-weight: 500; margin: 0 0 6px 0; color: var(--text-primary);">温柔学姐</h3>
+            <div style="margin-bottom: 8px;"><span class="tag tag-info">预设</span></div>
+            <p>多用肯定与鼓励，循序渐进分解难点，降低学习挫败感，适合起步阶段</p>
+            <div style="display: flex; gap: 4px; justify-content: center; padding-top: 12px; border-top: 1px solid var(--border-primary);">
+              <button class="btn btn-primary btn-sm">激活</button>
+              <button class="btn btn-ghost btn-sm">编辑</button>
+              <button class="btn btn-ghost btn-sm">删除</button>
+            </div>
+          </div>
+
+          <!-- 严格考官 (预设, 出题考核风格) -->
+          <div class="card persona-card">
+            <div class="avatar-md" style="background: var(--color-danger-light); color: var(--color-danger); font-weight: 600; margin-bottom: 12px;">严</div>
+            <h3 style="font-size: 14px; font-weight: 500; margin: 0 0 6px 0; color: var(--text-primary);">严格考官</h3>
+            <div style="margin-bottom: 8px;"><span class="tag tag-info">预设</span></div>
+            <p>直接指出错误，高频出题考核，要求严谨推导不留情面，适合冲刺阶段</p>
+            <div style="display: flex; gap: 4px; justify-content: center; padding-top: 12px; border-top: 1px solid var(--border-primary);">
+              <button class="btn btn-primary btn-sm">激活</button>
+              <button class="btn btn-ghost btn-sm">编辑</button>
+              <button class="btn btn-ghost btn-sm">删除</button>
+            </div>
+          </div>
+
+          <!-- 技术导师 (从 md 导入) -->
+          <div class="card persona-card">
+            <div class="avatar-md" style="background: var(--color-info-light); color: var(--color-info); font-weight: 600; margin-bottom: 12px;">技</div>
+            <h3 style="font-size: 14px; font-weight: 500; margin: 0 0 6px 0; color: var(--text-primary);">技术导师</h3>
+            <div style="margin-bottom: 8px;"><span class="tag tag-success">导入</span></div>
+            <p>从 Markdown 文件导入，聚焦工程实战与代码审查场景，强调动手验证</p>
+            <div style="display: flex; gap: 4px; justify-content: center; padding-top: 12px; border-top: 1px solid var(--border-primary);">
+              <button class="btn btn-primary btn-sm">激活</button>
+              <button class="btn btn-ghost btn-sm">编辑</button>
+              <button class="btn btn-ghost btn-sm">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme-switcher.js"></script>
+  <script src="js/interactions.js"></script>
+  <script>
+    // 同步 TopNav 主题快速切换下拉的选中值
+    (function () {
+      var select = document.getElementById('theme-quick-select');
+      if (select && window.ThemeSwitcher) {
+        select.value = window.ThemeSwitcher.getCurrentTheme();
+        document.addEventListener('themechange', function (e) {
+          select.value = e.detail.theme;
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

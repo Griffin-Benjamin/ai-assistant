@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="volc">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>对话学习 - AI 学习助手</title>
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+          AI 学习助手
+        </h1>
+        <p>个人学习智能体</p>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="chat.html" class="sidebar-nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/></svg>
+          对话
+        </a>
+        <a href="knowledge.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/></svg>
+          知识库
+        </a>
+        <a href="tree.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2"/></svg>
+          知识树
+        </a>
+        <a href="personas.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+          人格
+        </a>
+        <a href="tasks.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2"/></svg>
+          任务
+        </a>
+        <a href="settings.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg>
+          设置
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="theme-switcher">
+          <span class="theme-switcher-label">主题</span>
+          <button class="theme-btn active" data-theme="volc" title="Volcengine 源力"></button>
+          <button class="theme-btn" data-theme="nerv" title="Nerv 暗色"></button>
+          <button class="theme-btn" data-theme="golden" title="GoldenTime 暖色"></button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Area: TopNav + Content -->
+    <div class="app-layout-main">
+      <!-- TopNav -->
+      <header class="topnav">
+        <div class="header-title">对话学习</div>
+        <div class="header-actions">
+          <div class="selector-group">
+            <span class="selector-label">主题</span>
+            <select class="select-sm" id="topnav-theme-select" onchange="if(window.ThemeSwitcher){ThemeSwitcher.switchTheme(this.value);}">
+              <option value="volc">源力（亮色）</option>
+              <option value="nerv">Nerv（暗色）</option>
+              <option value="golden">GoldenTime（暖色）</option>
+            </select>
+          </div>
+          <div class="avatar-md" title="用户">YH</div>
+        </div>
+      </header>
+
+      <!-- Chat Page: dual panels -->
+      <div class="chat-page" style="flex:1; min-height:0;">
+        <div class="chat-panels" style="grid-template-columns: 2fr 3fr;">
+          <!-- Left Panel: Lecture Archive (讲解归档) -->
+          <div class="chat-panel chat-panel-left">
+            <div class="chat-panel-header">
+              <span class="chat-panel-title">讲解归档</span>
+              <div class="selector-group">
+                <span class="selector-label">知识库</span>
+                <select class="select-sm">
+                  <option value="os" selected>操作系统</option>
+                  <option value="ds">数据结构</option>
+                  <option value="cn">计算机网络</option>
+                </select>
+              </div>
+            </div>
+            <div class="chat-messages">
+              <!-- Lecture -->
+              <div class="message message-lecture">
+                <div class="message-meta">
+                  <span class="message-type-tag">LECTURE</span>
+                  <span class="message-time">14:32</span>
+                </div>
+                <div>进程是操作系统的基本执行单元，拥有独立的地址空间和系统资源。每个进程都有自己的代码段、数据段和堆栈段。</div>
+                <a class="message-node-link" href="#">&#8594; 进程管理</a>
+              </div>
+
+              <!-- Definition -->
+              <div class="message message-definition">
+                <div class="message-meta">
+                  <span class="message-type-tag">DEFINITION</span>
+                  <span class="message-time">14:30</span>
+                </div>
+                <div>进程控制块 (PCB) 是操作系统用来管理和控制进程运行的数据结构，包含了进程的标识信息、处理机状态信息、进程调度信息和进程控制信息。</div>
+              </div>
+
+              <!-- Example Question -->
+              <div class="message message-example">
+                <div class="message-meta">
+                  <span class="message-type-tag">EXAMPLE</span>
+                  <span class="message-time">14:28</span>
+                </div>
+                <div>思考：如果两个进程同时访问共享资源，会发生什么情况？请举例说明竞争条件 (Race Condition) 的产生过程。</div>
+              </div>
+
+              <!-- Lecture -->
+              <div class="message message-lecture">
+                <div class="message-meta">
+                  <span class="message-type-tag">LECTURE</span>
+                  <span class="message-time">14:25</span>
+                </div>
+                <div>死锁产生的四个必要条件：互斥条件、请求与保持条件、不剥夺条件和环路等待条件。只有当这四个条件同时满足时，系统才会发生死锁。</div>
+                <a class="message-node-link" href="#">&#8594; 死锁</a>
+              </div>
+
+              <!-- Definition -->
+              <div class="message message-definition">
+                <div class="message-meta">
+                  <span class="message-type-tag">DEFINITION</span>
+                  <span class="message-time">14:20</span>
+                </div>
+                <div>线程是进程内的一个执行实体，是 CPU 调度的基本单位。同一进程内的线程共享地址空间和资源，但拥有独立的栈、寄存器上下文和程序计数器。</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Panel: Chat -->
+          <div class="chat-panel">
+            <div class="chat-panel-header">
+              <div class="flex-gap-md" style="min-width:0; flex:1;">
+                <span class="chat-panel-title" style="white-space:nowrap;">操作系统 · 第 3 轮</span>
+                <span class="thread-id">thr_a8f2e1...</span>
+              </div>
+              <div class="chat-selectors">
+                <div class="selector-group">
+                  <span class="selector-label">人格</span>
+                  <select class="select-sm">
+                    <option value="self" selected>用户自身</option>
+                    <option value="strict">严格导师</option>
+                    <option value="encourage">鼓励型搭子</option>
+                    <option value="socratic">苏格拉底式</option>
+                  </select>
+                </div>
+                <div class="selector-group">
+                  <span class="selector-label">知识库</span>
+                  <select class="select-sm">
+                    <option value="os" selected>操作系统</option>
+                    <option value="ds">数据结构</option>
+                    <option value="cn">计算机网络</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-messages">
+              <!-- User chat -->
+              <div class="message message-user">
+                <div class="message-meta">
+                  <span class="message-time">14:20</span>
+                </div>
+                <div>什么是进程？和线程有什么区别？</div>
+              </div>
+
+              <!-- AI answer -->
+              <div class="message message-ai">
+                <div class="message-meta">
+                  <span class="message-type-tag">ANSWER</span>
+                  <span class="message-time">14:21</span>
+                </div>
+                <div>好问题！进程和线程的核心区别在于资源隔离程度。<br><br><strong>进程</strong>是资源分配的基本单位，每个进程拥有独立的地址空间、文件描述符和系统资源。进程间通信需要通过 IPC 机制（管道、共享内存、消息队列等）。<br><br><strong>线程</strong>是 CPU 调度的基本单位，同一进程内的线程共享地址空间和大部分资源，但每个线程有独立的栈和寄存器上下文。线程切换开销远小于进程切换。<br><br>简单来说：进程是"容器"，线程是容器里的"工作者"。</div>
+              </div>
+
+              <!-- User chat -->
+              <div class="message message-user">
+                <div class="message-meta">
+                  <span class="message-time">14:23</span>
+                </div>
+                <div>那协程呢？跟线程比有什么优势？</div>
+              </div>
+
+              <!-- AI tool_result -->
+              <div class="message message-ai">
+                <div class="message-meta">
+                  <span class="message-type-tag">TOOL_RESULT</span>
+                  <span class="message-time">14:23</span>
+                </div>
+                <div><code>kb_facts.search("协程 vs 线程")</code> → 命中 3 条笔记，置信度 0.86。已注入上下文：协程的调度由用户态控制、切换成本仅保存寄存器、单线程内可并发执行 IO 密集任务。</div>
+              </div>
+
+              <!-- AI answer -->
+              <div class="message message-ai">
+                <div class="message-meta">
+                  <span class="message-type-tag">ANSWER</span>
+                  <span class="message-time">14:24</span>
+                </div>
+                <div>协程是一种用户态的轻量级线程，由程序自身调度而非操作系统。相比线程的优势：<br><br>1. <strong>切换成本极低</strong>：只保存少量寄存器，不陷入内核态，切换开销约几十纳秒。<br>2. <strong>无需锁同步</strong>：单线程内协程串行执行，共享数据无需加锁。<br>3. <strong>高并发 IO</strong>：适合 IO 密集场景（如网络请求），一个线程可承载数万协程。<br><br>但 CPU 密集任务用协程反而会失去多核并行能力。</div>
+              </div>
+
+              <!-- AI summary -->
+              <div class="message message-ai">
+                <div class="message-meta">
+                  <span class="message-type-tag">SUMMARY</span>
+                  <span class="message-time">14:25</span>
+                </div>
+                <div>本回合学习要点已沉淀到 <code>kb_facts</code>：<br>· 进程 vs 线程 vs 协程的层级关系<br>· 资源隔离 → 调度单位 → 用户态调度的演进<br>· 风格样本：你习惯用"那…呢？"追问，已记录到 <code>kb_style</code></div>
+              </div>
+
+              <!-- AI typing -->
+              <div class="message message-ai">
+                <div class="message-meta">
+                  <span class="message-type-tag">ANSWER</span>
+                  <span class="message-time">14:26</span>
+                </div>
+                <div>要不要我用一张图对比这三者的资源占用与切换成本？</div>
+                <div class="typing-indicator">
+                  <span class="typing-dot"></span>
+                  <span class="typing-dot"></span>
+                  <span class="typing-dot"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Area (fixed bottom) -->
+            <div class="chat-input-area">
+              <div class="chat-input-wrapper">
+                <textarea placeholder="输入你的问题，或拖入图片..." rows="1"></textarea>
+                <button class="btn btn-primary">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><line x1="22" y1="2" x2="11" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polygon points="22 2 15 22 11 13 2 9 22 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                  发送
+                </button>
+              </div>
+              <div class="flex-gap-md" style="margin-top:8px;">
+                <button class="btn btn-ghost btn-sm" title="清空当前对话">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  清空
+                </button>
+                <button class="btn btn-ghost btn-sm" title="导出本轮对话">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  导出
+                </button>
+                <button class="btn btn-ghost btn-sm" title="上传错题图片">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="21 15 16 10 5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  上传图片
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme-switcher.js"></script>
+  <script src="js/interactions.js"></script>
+  <script>
+    // 同步 TopNav 主题下拉与全局主题状态
+    (function () {
+      var select = document.getElementById('topnav-theme-select');
+      if (!select || !window.ThemeSwitcher) return;
+      // 初始同步
+      select.value = ThemeSwitcher.getCurrentTheme();
+      // 当侧边栏 / 其他入口切换主题时，下拉也跟随
+      document.addEventListener('themechange', function (e) {
+        select.value = e.detail.theme;
+      });
+    })();
+  </script>
+</body>
+</html>

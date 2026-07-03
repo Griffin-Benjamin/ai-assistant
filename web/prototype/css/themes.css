@@ -1,0 +1,270 @@
+/* ============================================
+   Theme System — 三主题 Token 映射
+   Volcengine (volc)  : 企业亮色（默认）
+   Nerv       (nerv)  : EVA 暗色
+   GoldenTime (golden): 暖色亮色
+   Switch via <html data-theme="volc|nerv|golden">
+   ============================================ */
+
+/* ── 布局骨架变量（三主题共享，固定不变） ──── */
+:root {
+  --sidebar-width: 220px;
+  --topnav-height: 48px;
+  --content-padding: 32px;
+  --component-height: 32px;
+  --component-height-sm: 28px;
+  --component-height-lg: 36px;
+  --spacing-base: 4px;
+}
+
+/* ── Volcengine 主题（默认） ─────────────── */
+[data-theme="volc"], :root {
+  /* 背景层级 */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F6F8FA;
+  --bg-tertiary: #F2F6FA;
+  --bg-hover: #F2F6FA;
+  --bg-active: #1664FF;
+  --bg-surface: #FFFFFF;
+  --bg-sidebar: #F6F8FA;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  /* 文本层级 */
+  --text-primary: #0C0D0E;
+  --text-secondary: #42464E;
+  --text-tertiary: #737A87;
+  --text-inverse: #fafafa;
+  --text-link: #1664FF;
+
+  /* 边框 */
+  --border-primary: #EAEDF1;
+  --border-secondary: #DDE2E9;
+  --border-focus: #1664FF;
+
+  /* 圆角 */
+  --radius: 4px;
+  --radius-sm: 4px;
+
+  /* 字体 */
+  --font-sans: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", monospace;
+
+  /* 强调色 */
+  --accent-primary: #1664FF;
+  --accent-primary-hover: #006EFF;
+  --accent-primary-light: #E6F0FF;
+  --accent-secondary: #5a9bff;
+  --accent-secondary-light: #DDE9FF;
+
+  /* 语义状态色 */
+  --color-success: #2A814B;
+  --color-success-light: #E8F5EC;
+  --color-warning: #FF7D00;
+  --color-warning-light: #FFF3E5;
+  --color-danger: #E63F3F;
+  --color-danger-light: #FDE8E8;
+  --color-info: #1664FF;
+  --color-info-light: #E6F0FF;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 6px #0000000D;
+  --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 0 2px rgba(22, 100, 255, 0.15);
+
+  /* 掌握度色 */
+  --mastery-none: #EAEDF1;
+  --mastery-learning: #FF7D00;
+  --mastery-mastered: #2A814B;
+
+  /* 消息类型色 */
+  --msg-lecture: #F6F8FA;
+  --msg-definition: #FFFFFF;
+  --msg-example: #FFF3E5;
+  --msg-user: #1664FF;
+  --msg-ai: #FFFFFF;
+
+  /* 人格高亮 */
+  --persona-active-ring: #1664FF;
+  --persona-self-bg: linear-gradient(135deg, #F6F8FA, #EAEDF1);
+
+  /* 侧边栏 */
+  --sidebar-bg: #F6F8FA;
+  --sidebar-border: #EAEDF1;
+  --sidebar-item-active-bg: #1664FF;
+  --sidebar-item-active-fg: #FFFFFF;
+  --sidebar-item-hover-bg: #F2F6FA;
+  --sidebar-item-fg: #42464E;
+
+  /* 滚动条 */
+  --scrollbar-thumb: #D5DBE3;
+  --scrollbar-track: transparent;
+}
+
+/* ── Nerv 主题（暗色 EVA） ──────────────── */
+[data-theme="nerv"] {
+  /* 背景层级 */
+  --bg-primary: #0f0f10;
+  --bg-secondary: #111112;
+  --bg-tertiary: #1a1a1a;
+  --bg-hover: #1a1a1a;
+  --bg-active: #ea343a;
+  --bg-surface: #111112;
+  --bg-sidebar: #0d0d0d;
+  --bg-overlay: rgba(0, 0, 0, 0.8);
+
+  /* 文本层级 */
+  --text-primary: #e8e8e8;
+  --text-secondary: #8a8a8a;
+  --text-tertiary: #555555;
+  --text-inverse: #0a0a0a;
+  --text-link: #ea343a;
+
+  /* 边框 */
+  --border-primary: #222222;
+  --border-secondary: #1a1a1a;
+  --border-focus: #ea343a;
+
+  /* 圆角 */
+  --radius: 26.4px;
+  --radius-sm: 13.2px;
+
+  /* 字体 */
+  --font-sans: Geist, Inter, sans-serif;
+  --font-mono: "Roboto Mono", monospace;
+
+  /* 强调色 */
+  --accent-primary: #ea343a;
+  --accent-primary-hover: #c41f25;
+  --accent-primary-light: #2a0a0e;
+  --accent-secondary: #ff99cc;
+  --accent-secondary-light: #3b1114;
+
+  /* 语义状态色 */
+  --color-success: #52c41a;
+  --color-success-light: #162312;
+  --color-warning: #faad14;
+  --color-warning-light: #2b2110;
+  --color-danger: #ff4d4f;
+  --color-danger-light: #2a1215;
+  --color-info: #73d6ff;
+  --color-info-light: #0c1a33;
+
+  /* 阴影 */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 6px rgba(207, 19, 34, 0.05), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 0 2px rgba(234, 52, 58, 0.25), 0 0 12px rgba(234, 52, 58, 0.08);
+
+  /* 掌握度色 */
+  --mastery-none: #1a1a1a;
+  --mastery-learning: #faad14;
+  --mastery-mastered: #52c41a;
+
+  /* 消息类型色 */
+  --msg-lecture: #1a1a1a;
+  --msg-definition: #111112;
+  --msg-example: #1a1610;
+  --msg-user: #ea343a;
+  --msg-ai: #111112;
+
+  /* 人格高亮 */
+  --persona-active-ring: #ea343a;
+  --persona-self-bg: linear-gradient(135deg, #1a0a0e, #2a0a0e);
+
+  /* 侧边栏 */
+  --sidebar-bg: #0d0d0d;
+  --sidebar-border: #1a1a1a;
+  --sidebar-item-active-bg: #ea343a;
+  --sidebar-item-active-fg: #ffffff;
+  --sidebar-item-hover-bg: #1a1a1a;
+  --sidebar-item-fg: #8a8a8a;
+
+  /* 滚动条 */
+  --scrollbar-thumb: #333333;
+  --scrollbar-track: transparent;
+}
+
+/* ── GoldenTime 主题（暖色亮色） ─────────── */
+[data-theme="golden"] {
+  /* 背景层级 */
+  --bg-primary: #fbfaf9;
+  --bg-secondary: #f5f0e8;
+  --bg-tertiary: #eae6db;
+  --bg-hover: #eae6db;
+  --bg-active: #3b352b;
+  --bg-surface: #fbfaf9;
+  --bg-sidebar: #f5f0e8;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  /* 文本层级 */
+  --text-primary: #3b352b;
+  --text-secondary: #6b6358;
+  --text-tertiary: #9b965f;
+  --text-inverse: #fbfaf9;
+  --text-link: #3b352b;
+
+  /* 边框 */
+  --border-primary: #e1dccf;
+  --border-secondary: #eae6db;
+  --border-focus: #3b352b;
+
+  /* 圆角 */
+  --radius: 32px;
+  --radius-sm: 16px;
+
+  /* 字体 */
+  --font-sans: Fraunces, ui-serif, serif;
+  --font-mono: ui-monospace, monospace;
+
+  /* 强调色 */
+  --accent-primary: #3b352b;
+  --accent-primary-hover: #2a2520;
+  --accent-primary-light: #eae6db;
+  --accent-secondary: #9b965f;
+  --accent-secondary-light: #e1dccf;
+
+  /* 语义状态色 */
+  --color-success: #6b8e4e;
+  --color-success-light: #eae6db;
+  --color-warning: #c49b40;
+  --color-warning-light: #f5f0e8;
+  --color-danger: #ef4444;
+  --color-danger-light: #f5e6e6;
+  --color-info: #67e8f9;
+  --color-info-light: #e6f8fa;
+
+  /* 阴影 */
+  --shadow-sm: 0 2px 4px transparent;
+  --shadow-md: 0 2px 4px transparent;
+  --shadow-lg: 0 2px 4px transparent;
+  --shadow-glow: 0 0 0 2px rgba(59, 53, 43, 0.2);
+
+  /* 掌握度色 */
+  --mastery-none: #eae6db;
+  --mastery-learning: #c49b40;
+  --mastery-mastered: #6b8e4e;
+
+  /* 消息类型色 */
+  --msg-lecture: #f5f0e8;
+  --msg-definition: #fbfaf9;
+  --msg-example: #f5f0e8;
+  --msg-user: #3b352b;
+  --msg-ai: #fbfaf9;
+
+  /* 人格高亮 */
+  --persona-active-ring: #3b352b;
+  --persona-self-bg: linear-gradient(135deg, #f5f0e8, #eae6db);
+
+  /* 侧边栏 */
+  --sidebar-bg: #f5f0e8;
+  --sidebar-border: #e1dccf;
+  --sidebar-item-active-bg: #3b352b;
+  --sidebar-item-active-fg: #fbfaf9;
+  --sidebar-item-hover-bg: #eae6db;
+  --sidebar-item-fg: #6b6358;
+
+  /* 滚动条 */
+  --scrollbar-thumb: #cbc0aa;
+  --scrollbar-track: transparent;
+}

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="volc">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置 - AI 学习助手</title>
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    /* ── Settings 页面专属布局（仅引用语义 Token） ── */
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* 左侧子导航 */
+    .settings-subnav {
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius);
+    }
+
+    .settings-subnav-item {
+      display: flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font-family: var(--font-sans);
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .settings-subnav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .settings-subnav-item.active {
+      background: var(--accent-primary-light);
+      color: var(--accent-primary);
+      font-weight: 500;
+    }
+
+    /* 右侧表单区 */
+    .settings-section { display: none; }
+    .settings-section.active { display: block; }
+
+    .section-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 4px;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin: 0 0 20px;
+      line-height: 1.5;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-row-inline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .form-row-inline:last-child { border-bottom: none; }
+
+    .form-row-inline-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .form-row-inline-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .form-row-inline-hint {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .settings-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    /* ── 主题外观：三主题卡片预览 ── */
+    .theme-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .theme-card {
+      position: relative;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius);
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .theme-card:hover {
+      border-color: var(--border-secondary);
+    }
+
+    .theme-card.selected {
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .theme-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .theme-card-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .theme-card-desc {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .theme-card-check {
+      color: var(--accent-primary);
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .theme-card.selected .theme-card-check { opacity: 1; }
+
+    .theme-swatch-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .theme-swatch-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .theme-swatch {
+      height: 32px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-secondary);
+    }
+
+    .theme-swatch-label {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      text-align: center;
+      font-family: var(--font-mono);
+    }
+
+    /* 数据管理危险区 */
+    .danger-zone {
+      border-color: var(--color-danger);
+    }
+
+    .danger-zone .section-title { color: var(--color-danger); }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" fill="none"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2" fill="none"/></svg> AI 学习助手</h1>
+        <p>个人学习智能体</p>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="chat.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/></svg> 对话</a>
+        <a href="knowledge.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/></svg> 知识库</a>
+        <a href="tree.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2"/></svg> 知识树</a>
+        <a href="personas.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg> 人格</a>
+        <a href="tasks.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2"/></svg> 任务</a>
+        <a href="settings.html" class="sidebar-nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg> 设置</a>
+      </nav>
+    </aside>
+
+    <div class="app-layout-main">
+      <header class="topnav">
+        <div class="header-title">设置</div>
+        <div class="header-actions">
+          <div class="selector-group">
+            <span class="selector-label">主题</span>
+            <select class="select-sm" id="topnav-theme-select" aria-label="主题快速切换">
+              <option value="volc">Volcengine</option>
+              <option value="nerv">Nerv</option>
+              <option value="golden">GoldenTime</option>
+            </select>
+          </div>
+          <div class="avatar-md" title="用户">YH</div>
+        </div>
+      </header>
+
+      <div class="app-content">
+        <div class="settings-layout">
+          <!-- 左侧子导航 -->
+          <nav class="settings-subnav">
+            <button class="settings-subnav-item active" data-section="general">通用设置</button>
+            <button class="settings-subnav-item" data-section="model">模型配置</button>
+            <button class="settings-subnav-item" data-section="rules">学习规则</button>
+            <button class="settings-subnav-item" data-section="appearance">主题外观</button>
+            <button class="settings-subnav-item" data-section="data">数据管理</button>
+          </nav>
+
+          <!-- 右侧表单区 -->
+          <div class="settings-content">
+
+            <!-- 通用设置 -->
+            <section class="settings-section active" data-section="general">
+              <div class="section-card">
+                <h3 class="section-title">通用设置</h3>
+                <p class="section-desc">个人偏好与默认行为，影响所有对话与汇总任务。</p>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">昵称</label>
+                    <input type="text" class="input" value="学习者">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">默认学习人格</label>
+                    <select class="select">
+                      <option value="self" selected>用户自身（风格克隆）</option>
+                      <option value="strict">严格导师</option>
+                      <option value="encourage">鼓励型搭子</option>
+                      <option value="socratic">苏格拉底式</option>
+                      <option value="feynman">费曼讲解员</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">学习汇总频率</label>
+                  <select class="select">
+                    <option value="daily" selected>每天自动汇总</option>
+                    <option value="weekly">每周自动汇总</option>
+                    <option value="manual">仅手动触发</option>
+                  </select>
+                </div>
+
+                <div class="form-row-inline">
+                  <div class="form-row-inline-label">
+                    <span class="form-row-inline-title">自动汇总笔记到知识库</span>
+                    <span class="form-row-inline-hint">对话结束后抽取错题、笔记、心得写入 kb_facts</span>
+                  </div>
+                  <button class="toggle active" aria-pressed="true"></button>
+                </div>
+
+                <div class="form-row-inline">
+                  <div class="form-row-inline-label">
+                    <span class="form-row-inline-title">流式回复</span>
+                    <span class="form-row-inline-hint">SSE 逐 token 渲染，关闭后整段返回</span>
+                  </div>
+                  <button class="toggle active" aria-pressed="true"></button>
+                </div>
+
+                <div class="form-row-inline">
+                  <div class="form-row-inline-label">
+                    <span class="form-row-inline-title">讲解末尾输出思维导图</span>
+                    <span class="form-row-inline-hint">每节末尾自动生成 mermaid 思维导图</span>
+                  </div>
+                  <button class="toggle" aria-pressed="false"></button>
+                </div>
+
+                <div class="settings-actions">
+                  <button class="btn btn-primary">保存设置</button>
+                  <button class="btn btn-secondary">恢复默认</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- 模型配置 -->
+            <section class="settings-section" data-section="model">
+              <div class="section-card">
+                <h3 class="section-title">模型配置</h3>
+                <p class="section-desc">接入自选大模型，所有对话与汇总任务共用此配置。</p>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">模型提供商</label>
+                    <select class="select" id="model-provider">
+                      <option value="deepseek" selected>DeepSeek</option>
+                      <option value="openai">OpenAI</option>
+                      <option value="claude">Claude</option>
+                      <option value="volc">Volcengine 火山方舟</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">模型名称</label>
+                    <input type="text" class="input" value="deepseek-chat">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">API Base URL</label>
+                  <input type="text" class="input" value="https://api.deepseek.com/v1">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">API Key</label>
+                  <input type="password" class="input" value="sk-xxxxxxxxxxxxxxxxxxxx" placeholder="sk-...">
+                  <p class="form-hint">仅存储于本机 .env / localStorage，不会随对话上传。</p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">能力检测</label>
+                  <div class="capability-badges">
+                    <span class="tag tag-success"><span class="tag-dot success"></span>Tool Calling</span>
+                    <span class="tag tag-success"><span class="tag-dot success"></span>Vision</span>
+                    <span class="tag tag-success"><span class="tag-dot success"></span>Streaming</span>
+                    <span class="tag tag-neutral"><span class="tag-dot neutral"></span>长上下文 128K</span>
+                  </div>
+                </div>
+
+                <div class="settings-actions">
+                  <button class="btn btn-secondary">测试连接</button>
+                  <button class="btn btn-primary">保存配置</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- 学习规则 -->
+            <section class="settings-section" data-section="rules">
+              <div class="section-card">
+                <h3 class="section-title">学习规则</h3>
+                <p class="section-desc">选择规则模板或自定义 Markdown，底层自动翻译为 system prompt，无需手写提示词。</p>
+
+                <div class="form-group">
+                  <label class="form-label">规则模板</label>
+                  <select class="select" id="rule-template">
+                    <option value="feynman" selected>费曼学习法（通俗类比 + 复述检验）</option>
+                    <option value="sq3r">SQ3R（浏览/提问/阅读/复述/复习）</option>
+                    <option value="error3">错题三刷法（隔日 / 三日 / 七日）</option>
+                    <option value="pomodoro">番茄工作法（25 + 5）</option>
+                    <option value="custom">自定义</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">规则内容（Markdown）</label>
+                  <textarea class="input" style="font-family: var(--font-mono); min-height: 200px;"># 费曼学习法
+
+## 核心原则
+- 讲解时使用通俗类比
+- 讲解后必须让用户用自己的话复述
+- 复述不准确时回到上一个知识点
+
+## 复习策略
+- 采用艾宾浩斯遗忘曲线
+- 间隔: 1天 → 3天 → 7天 → 15天
+- 复述失败回到"学习中"状态</textarea>
+                  <p class="form-hint">修改后下次对话生效；历史版本可在版本列表回滚。</p>
+                </div>
+
+                <div class="settings-actions">
+                  <button class="btn btn-secondary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    导入 Markdown
+                  </button>
+                  <button class="btn btn-ghost">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    LLM 辅助生成
+                  </button>
+                  <button class="btn btn-primary">保存规则</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- 主题外观 -->
+            <section class="settings-section" data-section="appearance">
+              <div class="section-card">
+                <h3 class="section-title">主题外观</h3>
+                <p class="section-desc">三选一自由切换，立即生效并持久化到 localStorage。布局骨架三主题共享，仅切换颜色 / 字体 / 圆角 / 阴影。</p>
+
+                <div class="theme-cards">
+                  <!-- Volcengine -->
+                  <div class="theme-card" data-theme-card="volc">
+                    <div class="theme-card-header">
+                      <div>
+                        <div class="theme-card-name">Volcengine</div>
+                        <div class="theme-card-desc">企业亮色主题，纯白底配源力蓝，锐利清晰，适合专注学习。</div>
+                      </div>
+                      <span class="theme-card-check">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </span>
+                    </div>
+                    <div class="theme-swatch-row">
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#FFFFFF" title="背景 #FFFFFF"></div>
+                        <span class="theme-swatch-label">背景</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#1664FF" title="强调 #1664FF"></div>
+                        <span class="theme-swatch-label">强调</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#0C0D0E" title="文字 #0C0D0E"></div>
+                        <span class="theme-swatch-label">文字</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#EAEDF1" title="边框 #EAEDF1"></div>
+                        <span class="theme-swatch-label">边框</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Nerv -->
+                  <div class="theme-card" data-theme-card="nerv">
+                    <div class="theme-card-header">
+                      <div>
+                        <div class="theme-card-name">Nerv</div>
+                        <div class="theme-card-desc">EVA 暗色主题，近黑底配警报红，赛博极客风，适合夜间沉浸。</div>
+                      </div>
+                      <span class="theme-card-check">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </span>
+                    </div>
+                    <div class="theme-swatch-row">
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#0f0f10" title="背景 #0f0f10"></div>
+                        <span class="theme-swatch-label">背景</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#ea343a" title="强调 #ea343a"></div>
+                        <span class="theme-swatch-label">强调</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#e8e8e8" title="文字 #e8e8e8"></div>
+                        <span class="theme-swatch-label">文字</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#222222" title="边框 #222222"></div>
+                        <span class="theme-swatch-label">边框</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- GoldenTime -->
+                  <div class="theme-card" data-theme-card="golden">
+                    <div class="theme-card-header">
+                      <div>
+                        <div class="theme-card-name">GoldenTime</div>
+                        <div class="theme-card-desc">暖色羊皮纸主题，可可棕配衬线字体，温润护眼，适合长时阅读。</div>
+                      </div>
+                      <span class="theme-card-check">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </span>
+                    </div>
+                    <div class="theme-swatch-row">
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#fbfaf9" title="背景 #fbfaf9"></div>
+                        <span class="theme-swatch-label">背景</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#3b352b" title="强调 #3b352b"></div>
+                        <span class="theme-swatch-label">强调</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#9b965f" title="次要 #9b965f"></div>
+                        <span class="theme-swatch-label">次要</span>
+                      </div>
+                      <div class="theme-swatch-item">
+                        <div class="theme-swatch" style="background:#e1dccf" title="边框 #e1dccf"></div>
+                        <span class="theme-swatch-label">边框</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p class="form-hint" style="margin-top:16px;">当前主题的卡片会被 <code style="font-family:var(--font-mono);">var(--accent-primary)</code> 高亮。TopNav 右上角下拉可快速切换。</p>
+              </div>
+            </section>
+
+            <!-- 数据管理 -->
+            <section class="settings-section" data-section="data">
+              <div class="section-card">
+                <h3 class="section-title">数据导出</h3>
+                <p class="section-desc">导出三库与对话记录，便于备份或迁移到其他设备。</p>
+                <div class="settings-actions" style="margin-top:0;">
+                  <button class="btn btn-secondary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    导出知识库（JSON）
+                  </button>
+                  <button class="btn btn-secondary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    导出对话记录
+                  </button>
+                </div>
+              </div>
+
+              <div class="section-card danger-zone" style="margin-top:16px;">
+                <h3 class="section-title">危险操作</h3>
+                <p class="section-desc">清除操作不可撤销，会永久删除三库（kb_facts / kb_style / kb_thinking）及全部会话历史。</p>
+                <div class="settings-actions" style="margin-top:0;">
+                  <button class="btn btn-secondary">清除对话历史</button>
+                  <button class="btn btn-danger">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    清除所有数据
+                  </button>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme-switcher.js"></script>
+  <script src="js/interactions.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // 同步主题卡片选中态 + TopNav 下拉值
+      function syncThemeSelection() {
+        if (!window.ThemeSwitcher) return;
+        var current = window.ThemeSwitcher.getCurrentTheme();
+
+        document.querySelectorAll('[data-theme-card]').forEach(function (card) {
+          card.classList.toggle('selected', card.getAttribute('data-theme-card') === current);
+        });
+
+        var sel = document.getElementById('topnav-theme-select');
+        if (sel) sel.value = current;
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        // 子导航切换
+        var subnavItems = document.querySelectorAll('.settings-subnav-item');
+        var sections = document.querySelectorAll('.settings-section');
+        subnavItems.forEach(function (item) {
+          item.addEventListener('click', function () {
+            var target = item.getAttribute('data-section');
+            subnavItems.forEach(function (i) { i.classList.remove('active'); });
+            item.classList.add('active');
+            sections.forEach(function (s) {
+              s.classList.toggle('active', s.getAttribute('data-section') === target);
+            });
+          });
+        });
+
+        // 主题卡片点击 -> 调用 ThemeSwitcher
+        document.querySelectorAll('[data-theme-card]').forEach(function (card) {
+          card.addEventListener('click', function () {
+            var theme = card.getAttribute('data-theme-card');
+            if (window.ThemeSwitcher && window.ThemeSwitcher.switchTheme) {
+              window.ThemeSwitcher.switchTheme(theme);
+            }
+          });
+        });
+
+        // TopNav 下拉切换
+        var sel = document.getElementById('topnav-theme-select');
+        if (sel) {
+          sel.addEventListener('change', function () {
+            if (window.ThemeSwitcher && window.ThemeSwitcher.switchTheme) {
+              window.ThemeSwitcher.switchTheme(sel.value);
+            }
+          });
+        }
+
+        // 初始同步（theme-switcher.js 可能已从 localStorage 覆盖主题）
+        syncThemeSelection();
+      });
+
+      // 监听任意来源的主题切换（卡片 / 下拉 / .theme-btn）
+      document.addEventListener('themechange', syncThemeSelection);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="volc">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识树 - AI 学习助手</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    /* ── tree.html 页面专属补充样式（复用语义 Token，零硬编码） ── */
+
+    /* TopNav 标题与右侧组 */
+    .topnav-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    .topnav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topnav-theme-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* tree-page 在 topnav 之下填充剩余空间 */
+    .tree-page {
+      flex: 1;
+      min-height: 0;
+      height: auto;
+    }
+
+    /* 顶部操作栏：进度 + 导出/重建 */
+    .tree-page-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-primary);
+      background: var(--bg-surface);
+      flex-shrink: 0;
+    }
+    .tree-page-bar-left,
+    .tree-page-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tree-progress-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .tree-progress-mini .progress-bar {
+      width: 120px;
+    }
+
+    /* 40/60 分栏 */
+    .tree-page .tree-content {
+      grid-template-columns: 2fr 3fr;
+    }
+
+    /* 左侧树面板：工具栏固定 + 树滚动 */
+    .tree-pane-left {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      border-right: 1px solid var(--border-primary);
+    }
+    .tree-pane-left .tree-toolbar {
+      flex-shrink: 0;
+    }
+    .tree-pane-left .tree-view {
+      flex: 1;
+      overflow-y: auto;
+      border-right: none;
+      padding: 4px 0 16px;
+    }
+
+    /* 树节点行：箭头 + 名称(flex:1) + 掌握度标签 */
+    .tree-node-row {
+      gap: 8px;
+    }
+    .tree-node-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    /* 树内标签紧凑化 */
+    .tree-node-row .tag {
+      height: 20px;
+      padding: 1px 6px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    /* 右侧详情面板 */
+    .tree-detail-panel {
+      padding: 24px 28px;
+    }
+    .tree-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-primary);
+    }
+    .tree-detail-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+      flex: 1;
+      min-width: 0;
+    }
+    .tree-detail-section {
+      margin-bottom: 24px;
+    }
+    .tree-detail-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+    .tree-detail-desc {
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    .tree-related-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tree-related-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .tree-related-list li:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-secondary);
+      color: var(--text-primary);
+    }
+    .tree-related-list li svg {
+      width: 14px;
+      height: 14px;
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+    .tree-related-empty {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      padding: 8px 12px;
+    }
+    .tree-notes-area {
+      min-height: 120px;
+      line-height: 1.6;
+    }
+    .tree-detail-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-primary);
+    }
+
+    /* 空状态容器细调 */
+    .tree-detail-empty .empty-state p {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+          AI 学习助手
+        </h1>
+        <p>个人学习智能体</p>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="chat.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/></svg>
+          对话
+        </a>
+        <a href="knowledge.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/></svg>
+          知识库
+        </a>
+        <a href="tree.html" class="sidebar-nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2"/></svg>
+          知识树
+        </a>
+        <a href="personas.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+          人格
+        </a>
+        <a href="tasks.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2"/></svg>
+          任务
+        </a>
+        <a href="settings.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg>
+          设置
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="app-layout-main">
+      <!-- TopNav -->
+      <header class="topnav">
+        <h2 class="topnav-title">知识树</h2>
+        <div class="topnav-right">
+          <div class="topnav-theme-group">
+            <span class="selector-label">主题</span>
+            <select class="select-sm" id="topnav-theme-select" aria-label="切换主题">
+              <option value="volc">源力（亮色）</option>
+              <option value="nerv">Nerv（暗色）</option>
+              <option value="golden">GoldenTime（暖色）</option>
+            </select>
+          </div>
+          <div class="avatar-md" title="个人中心">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+        </div>
+      </header>
+
+      <div class="tree-page">
+        <!-- 顶部操作按钮：进度 + 导出 + 重建 -->
+        <div class="tree-page-bar">
+          <div class="tree-page-bar-left">
+            <span class="tree-progress-mini">
+              <span>已掌握 6 / 16 个节点</span>
+              <div class="progress-bar"><div class="progress-bar-fill" style="width:37.5%;"></div></div>
+            </span>
+          </div>
+          <div class="tree-page-bar-right">
+            <button class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              导出知识树
+            </button>
+            <button class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              重建知识树
+            </button>
+          </div>
+        </div>
+
+        <!-- 树内容区：左 40% 树形 + 右 60% 详情 -->
+        <div class="tree-content">
+          <!-- 左侧树形区 -->
+          <div class="tree-pane-left">
+            <div class="tree-toolbar">
+              <select class="select-sm" aria-label="选择项目">
+                <option value="embedded" selected>嵌入式系统</option>
+                <option value="os">操作系统</option>
+                <option value="ds">数据结构与算法</option>
+                <option value="net">计算机网络</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" id="btn-expand-all" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg>
+                展开全部
+              </button>
+              <button class="btn btn-ghost btn-sm" id="btn-collapse-all" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 11 12 6 17 11"/><polyline points="7 18 12 13 17 18"/></svg>
+                收起全部
+              </button>
+              <div class="spacer"></div>
+              <button class="btn btn-primary btn-sm" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                新建节点
+              </button>
+            </div>
+
+            <div class="tree-view">
+              <ul>
+                <!-- 嵌入式系统 (root, expanded, learning) -->
+                <li class="tree-node">
+                  <div class="tree-node-row"
+                       data-name="嵌入式系统"
+                       data-mastery="learning"
+                       data-desc="嵌入式系统是以应用为中心、以计算机技术为基础、软硬件可裁剪、适应应用系统对功能/可靠性/成本/体积/功耗严格要求的专用计算机系统。本知识树覆盖 MCU 级嵌入式开发的核心知识体系，从内核架构到外设驱动逐层展开。"
+                       data-related="Cortex-M3内核;PWM配置;中断系统;外设接口">
+                    <span class="tree-node-toggle expanded">
+                      <svg width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </span>
+                    <span class="tree-node-name">嵌入式系统</span>
+                    <span class="tag tag-warning"><span class="tag-dot warning"></span>学习中</span>
+                  </div>
+                  <ul class="tree-children">
+                    <!-- Cortex-M3内核 (expanded, mastered) -->
+                    <li class="tree-node">
+                      <div class="tree-node-row"
+                           data-name="Cortex-M3内核"
+                           data-mastery="mastered"
+                           data-desc="ARM Cortex-M3 是一款 32 位 RISC 处理器内核，采用哈佛架构，拥有独立的指令总线和数据总线，支持 Thumb-2 指令集，具有 3 级流水线，主要面向微控制器与实时应用领域。"
+                           data-related="寄存器组;流水线机制;异常处理">
+                        <span class="tree-node-toggle expanded">
+                          <svg width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
+                        <span class="tree-node-name">Cortex-M3内核</span>
+                        <span class="tag tag-success"><span class="tag-dot success"></span>已掌握</span>
+                      </div>
+                      <ul class="tree-children">
+                        <!-- 寄存器组 (leaf, mastered) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="寄存器组"
+                               data-mastery="mastered"
+                               data-desc="Cortex-M3 拥有 R0-R15 共 16 个通用寄存器。其中 R13 为堆栈指针(SP)，R14 为链接寄存器(LR)，R15 为程序计数器(PC)，另有 xPSR 程序状态寄存器记录 ALU 标志与执行状态。"
+                               data-related="Cortex-M3内核;异常处理">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">寄存器组</span>
+                            <span class="tag tag-success"><span class="tag-dot success"></span>已掌握</span>
+                          </div>
+                        </li>
+                        <!-- 流水线机制 (leaf, learning) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="流水线机制"
+                               data-mastery="learning"
+                               data-desc="Cortex-M3 采用 3 级流水线：取指、译码、执行。分支预测失败时需要冲刷流水线，造成流水线气泡；理解流水线交互是分析指令执行时间与中断响应延迟的关键。"
+                               data-related="Cortex-M3内核;寄存器组">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">流水线机制</span>
+                            <span class="tag tag-warning"><span class="tag-dot warning"></span>学习中</span>
+                          </div>
+                        </li>
+                        <!-- 异常处理 (leaf, none) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="异常处理"
+                               data-mastery="none"
+                               data-desc="Cortex-M3 异常模型包含复位、NMI、硬故障、总线故障、用法故障等故障类型，以及 SVCall、PendSV、SysTick 等系统异常。异常进入与返回由硬件自动保存/恢复上下文。"
+                               data-related="Cortex-M3内核;中断系统;NVIC控制器">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">异常处理</span>
+                            <span class="tag tag-neutral"><span class="tag-dot neutral"></span>未学习</span>
+                          </div>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <!-- PWM配置 (collapsed, learning) -->
+                    <li class="tree-node">
+                      <div class="tree-node-row"
+                           data-name="PWM配置"
+                           data-mastery="learning"
+                           data-desc="PWM(脉宽调制)通过改变占空比实现模拟量输出，常用于电机调速、LED 调光、舵机控制等场景。配置核心是定时器时基与比较寄存器的关系。"
+                           data-related="定时器基础;占空比计算;死区时间">
+                        <span class="tree-node-toggle">
+                          <svg width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
+                        <span class="tree-node-name">PWM配置</span>
+                        <span class="tag tag-warning"><span class="tag-dot warning"></span>学习中</span>
+                      </div>
+                      <ul class="tree-children" style="display:none;">
+                        <!-- 定时器基础 (leaf, mastered) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="定时器基础"
+                               data-mastery="mastered"
+                               data-desc="定时器由预分频器(PSC)、计数器(CNT)、自动重装载寄存器(ARR)组成，可配置为向上/向下/中心对齐计数模式，是 PWM、输入捕获、输出比较的基础。"
+                               data-related="PWM配置;占空比计算">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">定时器基础</span>
+                            <span class="tag tag-success"><span class="tag-dot success"></span>已掌握</span>
+                          </div>
+                        </li>
+                        <!-- 占空比计算 (leaf, learning) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="占空比计算"
+                               data-mastery="learning"
+                               data-desc="占空比 = CCR / ARR × 100%；PWM 频率 = 定时器时钟 / ((PSC+1) × (ARR+1))。修改 CCR 可动态调节占空比而不影响频率。"
+                               data-related="PWM配置;定时器基础">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">占空比计算</span>
+                            <span class="tag tag-warning"><span class="tag-dot warning"></span>学习中</span>
+                          </div>
+                        </li>
+                        <!-- 死区时间 (leaf, none) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="死区时间"
+                               data-mastery="none"
+                               data-desc="死区时间用于防止互补 PWM 上下桥臂直通短路，需根据开关管的开通/关断时间合理配置。STM32 通过 TIMx_BDTR 寄存器设置。"
+                               data-related="PWM配置;占空比计算">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">死区时间</span>
+                            <span class="tag tag-neutral"><span class="tag-dot neutral"></span>未学习</span>
+                          </div>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <!-- 中断系统 (collapsed, none) -->
+                    <li class="tree-node">
+                      <div class="tree-node-row"
+                           data-name="中断系统"
+                           data-mastery="none"
+                           data-desc="中断系统使 MCU 能够响应异步事件。Cortex-M3 通过 NVIC 管理中断优先级与使能，支持中断嵌套与尾链技术，显著降低中断响应延迟。"
+                           data-related="NVIC控制器;中断优先级;异常处理">
+                        <span class="tree-node-toggle">
+                          <svg width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
+                        <span class="tree-node-name">中断系统</span>
+                        <span class="tag tag-neutral"><span class="tag-dot neutral"></span>未学习</span>
+                      </div>
+                      <ul class="tree-children" style="display:none;">
+                        <!-- NVIC控制器 (leaf, none) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="NVIC控制器"
+                               data-mastery="none"
+                               data-desc="NVIC(Nested Vectored Interrupt Controller)是 Cortex-M3 的嵌套向量中断控制器，支持 240 个外部中断、16 个系统异常、可配置 3-8 位优先级（共 128 级）。"
+                               data-related="中断系统;中断优先级">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">NVIC控制器</span>
+                            <span class="tag tag-neutral"><span class="tag-dot neutral"></span>未学习</span>
+                          </div>
+                        </li>
+                        <!-- 中断优先级 (leaf, none) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="中断优先级"
+                               data-mastery="none"
+                               data-desc="优先级分组将优先级位分为抢占优先级与子优先级。抢占优先级高的中断可打断低优先级中断形成嵌套；同抢占级则通过子优先级决定执行顺序。"
+                               data-related="中断系统;NVIC控制器">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">中断优先级</span>
+                            <span class="tag tag-neutral"><span class="tag-dot neutral"></span>未学习</span>
+                          </div>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <!-- 外设接口 (collapsed, mastered) -->
+                    <li class="tree-node">
+                      <div class="tree-node-row"
+                           data-name="外设接口"
+                           data-mastery="mastered"
+                           data-desc="外设接口是 MCU 与外部设备通信的桥梁。常用串行接口包括 UART(异步)、SPI(同步主从)、I2C(两线多主多从)，各有适用场景与速率特征。"
+                           data-related="UART;SPI;I2C">
+                        <span class="tree-node-toggle">
+                          <svg width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
+                        <span class="tree-node-name">外设接口</span>
+                        <span class="tag tag-success"><span class="tag-dot success"></span>已掌握</span>
+                      </div>
+                      <ul class="tree-children" style="display:none;">
+                        <!-- UART (leaf, mastered) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="UART"
+                               data-mastery="mastered"
+                               data-desc="UART(通用异步收发器)采用起止式异步通信，只需 TX/RX 两根线，按波特率同步收发。常用于调试串口与低速通信，配置参数包括波特率、数据位、停止位、校验位。"
+                               data-related="外设接口;SPI">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">UART</span>
+                            <span class="tag tag-success"><span class="tag-dot success"></span>已掌握</span>
+                          </div>
+                        </li>
+                        <!-- SPI (leaf, mastered) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="SPI"
+                               data-mastery="mastered"
+                               data-desc="SPI(串行外设接口)采用主从架构同步通信，4 线制(MOSI/MISO/SCK/CS)，全双工，速率高于 UART，适合 Flash、显示屏、传感器等高速外设。"
+                               data-related="外设接口;UART;I2C">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">SPI</span>
+                            <span class="tag tag-success"><span class="tag-dot success"></span>已掌握</span>
+                          </div>
+                        </li>
+                        <!-- I2C (leaf, learning) -->
+                        <li class="tree-node">
+                          <div class="tree-node-row"
+                               data-name="I2C"
+                               data-mastery="learning"
+                               data-desc="I2C(两线式串行总线)采用 SDA/SCL 两线制，支持多主多从，通过 7 位/10 位设备地址寻址，常用于传感器、EEPROM、OLED 屏等低速外设。"
+                               data-related="外设接口;SPI">
+                            <span class="tree-node-leaf"></span>
+                            <span class="tree-node-name">I2C</span>
+                            <span class="tag tag-warning"><span class="tag-dot warning"></span>学习中</span>
+                          </div>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 右侧详情面板 -->
+          <div class="tree-detail-panel">
+            <!-- 空状态（默认显示） -->
+            <div class="tree-detail-empty">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                <h3>请选择左侧知识树节点</h3>
+                <p>点击树中的任意节点查看详情、关联知识点与笔记</p>
+              </div>
+            </div>
+
+            <!-- 详情内容（默认隐藏，点击节点后显示） -->
+            <div class="tree-detail-content" style="display:none;">
+              <div class="tree-detail-header">
+                <h2 class="tree-detail-title"></h2>
+                <span class="tag tree-detail-tag"></span>
+              </div>
+              <div class="tree-detail-section">
+                <div class="tree-detail-label">知识点描述</div>
+                <p class="tree-detail-desc"></p>
+              </div>
+              <div class="tree-detail-section">
+                <div class="tree-detail-label">关联知识点</div>
+                <ul class="tree-related-list"></ul>
+              </div>
+              <div class="tree-detail-section">
+                <div class="tree-detail-label">笔记</div>
+                <textarea class="input tree-notes-area" placeholder="记录你的学习笔记、易错点与心得..."></textarea>
+              </div>
+              <div class="tree-detail-actions">
+                <button class="btn btn-primary" type="button">保存笔记</button>
+                <button class="btn btn-secondary" type="button">标记已掌握</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme-switcher.js"></script>
+  <script src="js/interactions.js"></script>
+  <script>
+    // ── tree.html 专属交互：详情渲染 / 展开-收起全部 / TopNav 主题下拉 ──
+    document.addEventListener('DOMContentLoaded', function () {
+      var masteryMap = {
+        mastered: { cls: 'tag-success', dot: 'success', label: '已掌握' },
+        learning: { cls: 'tag-warning', dot: 'warning', label: '学习中' },
+        none:     { cls: 'tag-neutral', dot: 'neutral', label: '未学习' }
+      };
+
+      var detailContent = document.querySelector('.tree-detail-content');
+      var relatedIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
+
+      // 渲染详情面板：从被点击节点的 data-* 读取
+      function renderDetail(row) {
+        if (!detailContent || !row) return;
+        var name = row.getAttribute('data-name') || '未命名节点';
+        var mastery = row.getAttribute('data-mastery') || 'none';
+        var desc = row.getAttribute('data-desc') || '暂无描述';
+        var related = (row.getAttribute('data-related') || '').split(';').filter(Boolean);
+        var m = masteryMap[mastery] || masteryMap.none;
+
+        detailContent.querySelector('.tree-detail-title').textContent = name;
+
+        var tag = detailContent.querySelector('.tree-detail-tag');
+        tag.className = 'tag tree-detail-tag ' + m.cls;
+        tag.innerHTML = '<span class="tag-dot ' + m.dot + '"></span>' + m.label;
+
+        detailContent.querySelector('.tree-detail-desc').textContent = desc;
+
+        var ul = detailContent.querySelector('.tree-related-list');
+        if (related.length) {
+          ul.innerHTML = related.map(function (r) {
+            return '<li>' + relatedIcon + '<span>' + r + '</span></li>';
+          }).join('');
+        } else {
+          ul.innerHTML = '<li class="tree-related-empty">暂无关联知识点</li>';
+        }
+      }
+
+      // 绑定节点点击 → 渲染详情（interactions.js 已处理选中态与显隐切换）
+      document.querySelectorAll('.tree-node-row').forEach(function (row) {
+        row.addEventListener('click', function () { renderDetail(row); });
+      });
+
+      // 展开全部
+      var btnExpand = document.getElementById('btn-expand-all');
+      if (btnExpand) {
+        btnExpand.addEventListener('click', function () {
+          document.querySelectorAll('.tree-view .tree-node-toggle').forEach(function (t) {
+            t.classList.add('expanded');
+            var node = t.closest('.tree-node');
+            var children = node ? node.querySelector('.tree-children') : null;
+            if (children) children.style.display = 'block';
+          });
+        });
+      }
+
+      // 收起全部（保留根节点展开，便于浏览）
+      var btnCollapse = document.getElementById('btn-collapse-all');
+      if (btnCollapse) {
+        btnCollapse.addEventListener('click', function () {
+          var toggles = document.querySelectorAll('.tree-view .tree-node-toggle');
+          toggles.forEach(function (t, idx) {
+            // 跳过根节点（第一个 toggle）
+            if (idx === 0) return;
+            t.classList.remove('expanded');
+            var node = t.closest('.tree-node');
+            var children = node ? node.querySelector('.tree-children') : null;
+            if (children) children.style.display = 'none';
+          });
+        });
+      }
+
+      // TopNav 主题下拉与 ThemeSwitcher 双向同步
+      var themeSelect = document.getElementById('topnav-theme-select');
+      if (themeSelect && window.ThemeSwitcher) {
+        themeSelect.value = window.ThemeSwitcher.getCurrentTheme();
+        themeSelect.addEventListener('change', function () {
+          window.ThemeSwitcher.switchTheme(themeSelect.value);
+        });
+        document.addEventListener('themechange', function (e) {
+          themeSelect.value = e.detail.theme;
+        });
+      }
+    });
+  </script>
+</body>
+</html>

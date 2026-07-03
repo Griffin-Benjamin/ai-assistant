@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="volc">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任务管理 - AI 学习助手</title>
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    /* ── Tasks 页面专属布局（仅引用语义 Token） ── */
+    .tasks-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .tasks-toolbar-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .tasks-toolbar-title h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+    }
+
+    .tasks-toolbar-title p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-tertiary);
+      line-height: 1.5;
+    }
+
+    .tasks-section {
+      margin-bottom: 32px;
+    }
+
+    .tasks-section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+    }
+
+    .tasks-section-title-count {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-tertiary);
+    }
+
+    /* 任务名称单元格 */
+    .task-name-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .task-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .task-desc {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      line-height: 1.4;
+    }
+
+    /* Cron 表达式等宽显示 */
+    .cron-expr {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+    }
+
+    /* 下次执行时间 */
+    .next-run {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* 操作列按钮组 */
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .task-actions .btn {
+      padding: 0 8px;
+      font-size: 12px;
+      height: var(--component-height-sm);
+    }
+
+    /* 历史结果列 */
+    .history-result {
+      font-size: 12px;
+      color: var(--text-secondary);
+      max-width: 320px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" fill="none"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2" fill="none"/></svg> AI 学习助手</h1>
+        <p>个人学习智能体</p>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="chat.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/></svg> 对话</a>
+        <a href="knowledge.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/></svg> 知识库</a>
+        <a href="tree.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2"/></svg> 知识树</a>
+        <a href="personas.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg> 人格</a>
+        <a href="tasks.html" class="sidebar-nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2"/></svg> 任务</a>
+        <a href="settings.html" class="sidebar-nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg> 设置</a>
+      </nav>
+    </aside>
+
+    <div class="app-layout-main">
+      <header class="topnav">
+        <div class="header-title">任务管理</div>
+        <div class="header-actions">
+          <div class="selector-group">
+            <span class="selector-label">主题</span>
+            <select class="select-sm" id="topnav-theme-select" aria-label="主题快速切换">
+              <option value="volc">Volcengine</option>
+              <option value="nerv">Nerv</option>
+              <option value="golden">GoldenTime</option>
+            </select>
+          </div>
+          <div class="avatar-md" title="用户">YH</div>
+        </div>
+      </header>
+
+      <div class="app-content">
+        <!-- 顶部工具栏 -->
+        <div class="tasks-toolbar">
+          <div class="tasks-toolbar-title">
+            <h2>任务管理</h2>
+            <p>配置定时任务，自动汇总学习内容、触发复习提醒与维护三库。</p>
+          </div>
+          <button class="btn btn-primary" data-modal-open="create-task-modal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            新建任务
+          </button>
+        </div>
+
+        <!-- 任务列表区 -->
+        <section class="tasks-section">
+          <div class="tasks-section-title">
+            <span>任务列表</span>
+            <span class="tasks-section-title-count">共 6 条</span>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 26%;">任务名称</th>
+                <th style="width: 10%;">类型</th>
+                <th style="width: 14%;">Cron 表达式</th>
+                <th style="width: 10%;">状态</th>
+                <th style="width: 14%;">下次执行</th>
+                <th style="width: 26%;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="task-name-cell">
+                    <span class="task-name">每日错题汇总</span>
+                    <span class="task-desc">每天清晨抽取昨日对话中的错题写入 kb_facts</span>
+                  </div>
+                </td>
+                <td><span class="tag tag-info">汇总</span></td>
+                <td><code class="cron-expr">0 8 * * *</code></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>运行中</span></td>
+                <td><span class="next-run">2026-07-03 08:00</span></td>
+                <td>
+                  <div class="task-actions">
+                    <button class="btn btn-ghost">编辑</button>
+                    <button class="btn btn-ghost">暂停</button>
+                    <button class="btn btn-ghost">删除</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="task-name-cell">
+                    <span class="task-name">周三复习提醒</span>
+                    <span class="task-desc">每周三早晨推送艾宾浩斯到期节点复习清单</span>
+                  </div>
+                </td>
+                <td><span class="tag tag-success">复习</span></td>
+                <td><code class="cron-expr">0 9 * * 3</code></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>运行中</span></td>
+                <td><span class="next-run">2026-07-08 09:00</span></td>
+                <td>
+                  <div class="task-actions">
+                    <button class="btn btn-ghost">编辑</button>
+                    <button class="btn btn-ghost">暂停</button>
+                    <button class="btn btn-ghost">删除</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="task-name-cell">
+                    <span class="task-name">知识树重建</span>
+                    <span class="task-desc">每周日凌晨重建 kb_facts 关联的知识树结构</span>
+                  </div>
+                </td>
+                <td><span class="tag tag-info">汇总</span></td>
+                <td><code class="cron-expr">0 2 * * 0</code></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>运行中</span></td>
+                <td><span class="next-run">2026-07-05 02:00</span></td>
+                <td>
+                  <div class="task-actions">
+                    <button class="btn btn-ghost">编辑</button>
+                    <button class="btn btn-ghost">暂停</button>
+                    <button class="btn btn-ghost">删除</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="task-name-cell">
+                    <span class="task-name">风格样本抽取</span>
+                    <span class="task-desc">每 5 分钟增量抽取用户语言风格样本入 kb_style</span>
+                  </div>
+                </td>
+                <td><span class="tag tag-info">汇总</span></td>
+                <td><code class="cron-expr">0 */5 * * *</code></td>
+                <td><span class="tag tag-neutral"><span class="tag-dot neutral"></span>已暂停</span></td>
+                <td><span class="next-run">—</span></td>
+                <td>
+                  <div class="task-actions">
+                    <button class="btn btn-ghost">编辑</button>
+                    <button class="btn btn-ghost">启用</button>
+                    <button class="btn btn-ghost">删除</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="task-name-cell">
+                    <span class="task-name">周末笔记整理</span>
+                    <span class="task-desc">每周六上午归纳本周笔记、心得与重点标签</span>
+                  </div>
+                </td>
+                <td><span class="tag tag-info">汇总</span></td>
+                <td><code class="cron-expr">0 10 * * 6</code></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>运行中</span></td>
+                <td><span class="next-run">2026-07-04 10:00</span></td>
+                <td>
+                  <div class="task-actions">
+                    <button class="btn btn-ghost">编辑</button>
+                    <button class="btn btn-ghost">暂停</button>
+                    <button class="btn btn-ghost">删除</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="task-name-cell">
+                    <span class="task-name">月末知识归档</span>
+                    <span class="task-desc">每月 1 日凌晨归档上月 kb_facts 至长期记忆层</span>
+                  </div>
+                </td>
+                <td><span class="tag tag-info">汇总</span></td>
+                <td><code class="cron-expr">0 0 1 * *</code></td>
+                <td><span class="tag tag-danger"><span class="tag-dot danger"></span>失败</span></td>
+                <td><span class="next-run">2026-08-01 00:00</span></td>
+                <td>
+                  <div class="task-actions">
+                    <button class="btn btn-ghost">编辑</button>
+                    <button class="btn btn-ghost">重试</button>
+                    <button class="btn btn-ghost">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 最近运行历史区 -->
+        <section class="tasks-section">
+          <div class="tasks-section-title">
+            <span>最近运行历史</span>
+            <span class="tasks-section-title-count">近 6 条</span>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 24%;">任务名</th>
+                <th style="width: 18%;">开始时间</th>
+                <th style="width: 18%;">结束时间</th>
+                <th style="width: 12%;">状态</th>
+                <th style="width: 28%;">结果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="task-name">每日错题汇总</span></td>
+                <td><span class="next-run">2026-07-02 08:00:00</span></td>
+                <td><span class="next-run">2026-07-02 08:00:42</span></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>成功</span></td>
+                <td><span class="history-result">抽取 12 条错题，已去重 2 条，写入 kb_facts。</span></td>
+              </tr>
+              <tr>
+                <td><span class="task-name">风格样本抽取</span></td>
+                <td><span class="next-run">2026-07-02 07:55:00</span></td>
+                <td><span class="next-run">2026-07-02 07:55:08</span></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>成功</span></td>
+                <td><span class="history-result">新增 3 条短语样本、1 条句式样本。</span></td>
+              </tr>
+              <tr>
+                <td><span class="task-name">周末笔记整理</span></td>
+                <td><span class="next-run">2026-06-27 10:00:00</span></td>
+                <td><span class="next-run">2026-06-27 10:01:25</span></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>成功</span></td>
+                <td><span class="history-result">归纳 8 条笔记，新增标签：操作系统、进程调度。</span></td>
+              </tr>
+              <tr>
+                <td><span class="task-name">周三复习提醒</span></td>
+                <td><span class="next-run">2026-06-24 09:00:00</span></td>
+                <td><span class="next-run">2026-06-24 09:00:03</span></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>成功</span></td>
+                <td><span class="history-result">推送 5 条到期复习项，2 条已确认。</span></td>
+              </tr>
+              <tr>
+                <td><span class="task-name">知识树重建</span></td>
+                <td><span class="next-run">2026-06-21 02:00:00</span></td>
+                <td><span class="next-run">2026-06-21 02:00:51</span></td>
+                <td><span class="tag tag-success"><span class="tag-dot success"></span>成功</span></td>
+                <td><span class="history-result">重建 42 个节点，新增 3 条父子关系。</span></td>
+              </tr>
+              <tr>
+                <td><span class="task-name">月末知识归档</span></td>
+                <td><span class="next-run">2026-07-01 00:00:00</span></td>
+                <td><span class="next-run">2026-07-01 00:00:12</span></td>
+                <td><span class="tag tag-danger"><span class="tag-dot danger"></span>失败</span></td>
+                <td><span class="history-result">归档时 kb_facts 写入超时，需检查 SQLite 连接池配置。</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新建任务 Modal -->
+  <div class="modal-overlay" id="create-task-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新建任务</h3>
+        <button class="btn btn-ghost btn-icon" data-modal-close>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">任务名称</label>
+          <input type="text" class="input" placeholder="如：每日错题汇总">
+        </div>
+        <div class="form-group">
+          <label class="form-label">任务描述</label>
+          <input type="text" class="input" placeholder="一句话描述任务目标">
+        </div>
+        <div class="form-group">
+          <label class="form-label">任务类型</label>
+          <select class="select">
+            <option value="summarize">汇总</option>
+            <option value="review">复习</option>
+            <option value="remind">提醒</option>
+            <option value="custom">自定义</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cron 表达式</label>
+          <input type="text" class="input" placeholder="0 8 * * *" style="font-family: var(--font-mono);">
+          <p class="form-hint">五段式：分 时 日 月 周。如 <code style="font-family:var(--font-mono);">0 8 * * *</code> 表示每天 08:00。</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">关联目标</label>
+          <select class="select">
+            <option value="kb_facts">kb_facts 客观知识点</option>
+            <option value="kb_style">kb_style 风格样本</option>
+            <option value="kb_thinking">kb_thinking 推理样本</option>
+            <option value="tree">知识树</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal-close>取消</button>
+        <button class="btn btn-primary">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme-switcher.js"></script>
+  <script src="js/interactions.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // TopNav 主题下拉双向同步
+      function syncTopnavThemeSelect() {
+        if (!window.ThemeSwitcher) return;
+        var current = window.ThemeSwitcher.getCurrentTheme();
+        var sel = document.getElementById('topnav-theme-select');
+        if (sel) sel.value = current;
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        var sel = document.getElementById('topnav-theme-select');
+        if (sel) {
+          sel.addEventListener('change', function () {
+            if (window.ThemeSwitcher && window.ThemeSwitcher.switchTheme) {
+              window.ThemeSwitcher.switchTheme(sel.value);
+            }
+          });
+        }
+        // 初始同步（theme-switcher.js 可能已从 localStorage 覆盖主题）
+        syncTopnavThemeSelect();
+      });
+
+      // 监听任意来源的主题切换，回填 select 值
+      document.addEventListener('themechange', syncTopnavThemeSelect);
+    })();
+  </script>
+</body>
+</html>

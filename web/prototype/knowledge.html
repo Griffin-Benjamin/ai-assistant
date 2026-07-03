@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="volc">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识库 - AI 学习助手</title>
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    /* ── Knowledge page 结构性布局（颜色/字体/圆角均引用语义 Token） ── */
+
+    /* TopNav 标题与主题下拉 */
+    .topnav-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .topnav-theme-select {
+      width: auto;
+      min-width: 140px;
+    }
+
+    /* Tab 内容区：复用 .app-content 的 32px 内边距，去掉 .tab-content 默认 16px 避免双倍 */
+    .app-content .tab-content { padding: 0; }
+
+    /* 筛选栏 */
+    .kb-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .kb-filter-bar .search-input {
+      flex: 1;
+      min-width: 200px;
+      max-width: 320px;
+    }
+    .kb-select-auto {
+      width: auto;
+      min-width: 140px;
+    }
+    .kb-filter-bar .kb-spacer { flex: 1; }
+
+    /* 卡片列表 */
+    .kb-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* 卡片内部结构 */
+    .kb-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .kb-card-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin: 0;
+      line-height: 1.4;
+    }
+    .kb-card-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .kb-card-summary {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0 0 12px 0;
+    }
+    .kb-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .kb-card-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .kb-card-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+    }
+
+    /* 风格样本卡片 */
+    .kb-style-phrase {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin: 0 0 4px 0;
+      font-family: var(--font-mono);
+    }
+    .kb-style-context {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin: 0 0 12px 0;
+    }
+    .kb-style-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+    }
+    .kb-confidence {
+      width: 60px;
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .kb-confidence-fill {
+      height: 100%;
+      background: var(--accent-primary);
+      border-radius: 9999px;
+    }
+
+    /* 思维路径卡片 */
+    .kb-thinking-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin: 0 0 4px 0;
+    }
+    .kb-thinking-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0 0 12px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+          AI 学习助手
+        </h1>
+        <p>个人学习智能体</p>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="chat.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/></svg>
+          对话
+        </a>
+        <a href="knowledge.html" class="sidebar-nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/></svg>
+          知识库
+        </a>
+        <a href="tree.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2"/></svg>
+          知识树
+        </a>
+        <a href="personas.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+          人格
+        </a>
+        <a href="tasks.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2"/></svg>
+          任务
+        </a>
+        <a href="settings.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg>
+          设置
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="theme-switcher">
+          <span class="theme-switcher-label">主题</span>
+          <button class="theme-btn active" data-theme="volc" title="源力（亮色）"></button>
+          <button class="theme-btn" data-theme="nerv" title="Nerv（暗色）"></button>
+          <button class="theme-btn" data-theme="golden" title="GoldenTime（暖色）"></button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="app-layout-main">
+      <!-- TopNav -->
+      <header class="topnav">
+        <h2 class="topnav-title">知识库</h2>
+        <div class="header-actions">
+          <select class="select topnav-theme-select" id="topnav-theme-select" aria-label="主题快速切换">
+            <option value="volc">源力（亮色）</option>
+            <option value="nerv">Nerv（暗色）</option>
+            <option value="golden">GoldenTime（暖色）</option>
+          </select>
+          <div class="avatar avatar-md" title="学习者">U</div>
+        </div>
+      </header>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-item active" data-tab="facts">客观知识点</button>
+        <button class="tab-item" data-tab="style">语言风格</button>
+        <button class="tab-item" data-tab="thinking">思维逻辑</button>
+      </div>
+
+      <!-- Content -->
+      <main class="app-content">
+        <!-- ── facts Tab ── -->
+        <div class="tab-content active" data-tab="facts">
+          <div class="kb-filter-bar">
+            <div class="search-input">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2"/></svg>
+              <input class="input" placeholder="搜索知识点...">
+            </div>
+            <select class="select kb-select-auto" aria-label="标签筛选">
+              <option value="">全部标签</option>
+              <option value="embedded">嵌入式</option>
+              <option value="os">操作系统</option>
+              <option value="network">计算机网络</option>
+              <option value="langchain">LangChain</option>
+            </select>
+            <select class="select kb-select-auto" aria-label="排序">
+              <option value="time-desc">按时间倒序</option>
+              <option value="time-asc">按时间正序</option>
+              <option value="mastery">按掌握度</option>
+              <option value="title">按标题</option>
+            </select>
+            <span class="kb-spacer"></span>
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              新建知识
+            </button>
+          </div>
+
+          <div class="kb-cards">
+            <!-- Card 1 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <h3 class="kb-card-title">PWM 蜂鸣器配置</h3>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-card-summary">通过 STM32 定时器的 ARR 与 CCR 寄存器配置 PWM 频率与占空比，驱动无源蜂鸣器发声。频率决定音调，占空比影响音量。</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-info">嵌入式</span>
+                    <span class="tag tag-info">STM32</span>
+                    <span class="tag tag-success"><span class="tag-dot success"></span>已掌握</span>
+                  </div>
+                  <div class="kb-card-info">
+                    <span>来源：课堂笔记</span>
+                    <span>2025-06-15</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <h3 class="kb-card-title">LangChain init_chat_model 工厂模式</h3>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-card-summary">init_chat_model 通过 provider 参数动态实例化不同厂商的 ChatModel，统一接口屏蔽底层差异，对应项目"用户自选模型"需求。</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-info">LangChain</span>
+                    <span class="tag tag-info">AI 助手</span>
+                    <span class="tag tag-warning"><span class="tag-dot warning"></span>学习中</span>
+                  </div>
+                  <div class="kb-card-info">
+                    <span>来源：官方文档</span>
+                    <span>2025-06-14</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <h3 class="kb-card-title">进程与线程的区别</h3>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-card-summary">进程是资源分配的基本单位，拥有独立地址空间；线程是 CPU 调度的基本单位，共享进程资源。线程切换开销远小于进程切换。</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-info">操作系统</span>
+                    <span class="tag tag-info">进程</span>
+                    <span class="tag tag-success"><span class="tag-dot success"></span>已掌握</span>
+                  </div>
+                  <div class="kb-card-info">
+                    <span>来源：教材</span>
+                    <span>2025-06-12</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <h3 class="kb-card-title">TCP 三次握手与四次挥手</h3>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-card-summary">三次握手建立连接（SYN / SYN-ACK / ACK），四次挥手断开连接（FIN / ACK / FIN / ACK），确保双向可靠关闭。</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-info">计算机网络</span>
+                    <span class="tag tag-info">TCP</span>
+                    <span class="tag tag-warning"><span class="tag-dot warning"></span>学习中</span>
+                  </div>
+                  <div class="kb-card-info">
+                    <span>来源：LeetCode 错题</span>
+                    <span>2025-06-10</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── style Tab ── -->
+        <div class="tab-content" data-tab="style">
+          <div class="kb-filter-bar">
+            <div class="search-input">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2"/></svg>
+              <input class="input" placeholder="搜索风格样本...">
+            </div>
+            <select class="select kb-select-auto" aria-label="标签筛选">
+              <option value="">全部标签</option>
+              <option value="phrase">口头禅</option>
+              <option value="mixed">中英混用</option>
+              <option value="summary">总结句式</option>
+            </select>
+            <select class="select kb-select-auto" aria-label="排序">
+              <option value="freq">按使用频率</option>
+              <option value="confidence">按置信度</option>
+              <option value="time-desc">按时间倒序</option>
+            </select>
+            <span class="kb-spacer"></span>
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              新建样本
+            </button>
+          </div>
+
+          <div class="kb-cards">
+            <!-- Style Card 1 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <p class="kb-style-phrase">"说白了就是..."</p>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-style-context">使用场景：解释概念时</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-info">口头禅</span>
+                    <span class="tag tag-success"><span class="tag-dot success"></span>高频</span>
+                  </div>
+                  <div class="kb-style-meta">
+                    <span>使用 23 次</span>
+                    <span>置信度 85%</span>
+                    <div class="kb-confidence"><div class="kb-confidence-fill" style="width: 85%;"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Style Card 2 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <p class="kb-style-phrase">"let me think..."</p>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-style-context">使用场景：思考时</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-warning"><span class="tag-dot warning"></span>中英混用</span>
+                    <span class="tag tag-success"><span class="tag-dot success"></span>高频</span>
+                  </div>
+                  <div class="kb-style-meta">
+                    <span>使用 31 次</span>
+                    <span>置信度 91%</span>
+                    <div class="kb-confidence"><div class="kb-confidence-fill" style="width: 91%;"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Style Card 3 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <p class="kb-style-phrase">"简单来说"</p>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-style-context">使用场景：总结时</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-info">总结句式</span>
+                  </div>
+                  <div class="kb-style-meta">
+                    <span>使用 19 次</span>
+                    <span>置信度 78%</span>
+                    <div class="kb-confidence"><div class="kb-confidence-fill" style="width: 78%;"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── thinking Tab ── -->
+        <div class="tab-content" data-tab="thinking">
+          <div class="kb-filter-bar">
+            <div class="search-input">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2"/></svg>
+              <input class="input" placeholder="搜索思维路径...">
+            </div>
+            <select class="select kb-select-auto" aria-label="标签筛选">
+              <option value="">全部标签</option>
+              <option value="wide">广泛适用</option>
+              <option value="compare">概念辨析</option>
+              <option value="theory">理论总结</option>
+            </select>
+            <select class="select kb-select-auto" aria-label="排序">
+              <option value="time-desc">按时间倒序</option>
+              <option value="scope">按适用范围</option>
+              <option value="time-asc">按时间正序</option>
+            </select>
+            <span class="kb-spacer"></span>
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              新建路径
+            </button>
+          </div>
+
+          <div class="kb-cards">
+            <!-- Thinking Card 1 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <h3 class="kb-thinking-name">先定义再举例</h3>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-thinking-desc">解释新概念时先给严格定义，再用生活类比帮助理解，最后回到定义强化记忆，避免一开始就陷入细节。</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-success"><span class="tag-dot success"></span>广泛适用</span>
+                  </div>
+                  <div class="kb-card-info">
+                    <span>来源：风格抽取</span>
+                    <span>2025-06-15</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thinking Card 2 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <h3 class="kb-thinking-name">对比分析法</h3>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-thinking-desc">遇到相似概念时主动列表对比差异（如进程 vs 线程），从资源、调度、通信三个维度切入，比单独记忆更牢固。</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-info"><span class="tag-dot info"></span>概念辨析</span>
+                  </div>
+                  <div class="kb-card-info">
+                    <span>来源：风格抽取</span>
+                    <span>2025-06-14</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thinking Card 3 -->
+            <div class="card">
+              <div class="card-body">
+                <div class="kb-card-header">
+                  <h3 class="kb-thinking-name">自底向上归纳</h3>
+                  <div class="kb-card-actions">
+                    <button class="btn btn-ghost btn-sm">编辑</button>
+                    <button class="btn btn-ghost btn-sm">删除</button>
+                  </div>
+                </div>
+                <p class="kb-thinking-desc">从 2-3 个具体例子中归纳一般规律，再演绎验证，避免直接背诵抽象结论导致迁移困难。</p>
+                <div class="kb-card-meta">
+                  <div class="kb-card-tags">
+                    <span class="tag tag-warning"><span class="tag-dot warning"></span>理论总结</span>
+                  </div>
+                  <div class="kb-card-info">
+                    <span>来源：风格抽取</span>
+                    <span>2025-06-13</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/theme-switcher.js"></script>
+  <script src="js/interactions.js"></script>
+  <script>
+    // ── .tab-item 切换逻辑（spec 指定使用 .tab-item 类） ──
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.tabs').forEach(function (tabBar) {
+        var tabs = tabBar.querySelectorAll('.tab-item');
+        var parent = tabBar.parentElement;
+        var contents = parent.querySelectorAll('.tab-content');
+        tabs.forEach(function (tab) {
+          tab.addEventListener('click', function () {
+            tabs.forEach(function (t) { t.classList.remove('active'); });
+            tab.classList.add('active');
+            var target = tab.getAttribute('data-tab');
+            contents.forEach(function (c) {
+              c.classList.toggle('active', c.getAttribute('data-tab') === target);
+            });
+          });
+        });
+      });
+
+      // ── TopNav 主题快速切换下拉 ──
+      var themeSelect = document.getElementById('topnav-theme-select');
+      if (themeSelect && window.ThemeSwitcher) {
+        themeSelect.value = window.ThemeSwitcher.getCurrentTheme();
+        themeSelect.addEventListener('change', function () {
+          window.ThemeSwitcher.switchTheme(themeSelect.value);
+        });
+        // 侧边栏主题按钮变化时同步下拉
+        document.addEventListener('themechange', function (e) {
+          themeSelect.value = e.detail.theme;
+        });
+      }
+    });
+  </script>
+</body>
+</html>
