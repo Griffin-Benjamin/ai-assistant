@@ -10,7 +10,11 @@
 JSON 字段说明：
 所有 ``*ids`` / ``capabilities`` / ``tags`` / ``task_config`` / ``parsed_prompt``
 等结构化字段均以 ``String`` 存储 JSON 文本，读写时用 ``json.loads`` / ``json.dumps``
-转换。这样可保持 SQLite 兼容性，避免方言差异。
+转换。这样可保持 SQLite / MySQL 兼容性，避免方言差异。
+
+Note:
+    MySQL 的 VARCHAR 必须显式指定长度，因此所有 ``String`` 列都带长度参数
+    （SQLite 会忽略该长度，不影响测试）。
 """
 import json
 import uuid
@@ -37,9 +41,9 @@ class User(Base):
 
     __tablename__ = "users"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    email = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # 关系
@@ -54,15 +58,15 @@ class ModelConfig(Base):
 
     __tablename__ = "model_configs"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    provider = Column(String, nullable=False)  # openai/deepseek/claude/qwen
-    base_url = Column(String, nullable=False)
-    api_key = Column(String, nullable=False)  # 加密存储
-    model_name = Column(String, nullable=False)
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    provider = Column(String(50), nullable=False)  # openai/deepseek/claude/qwen
+    base_url = Column(String(512), nullable=False)
+    api_key = Column(String(255), nullable=False)  # 加密存储
+    model_name = Column(String(100), nullable=False)
     max_context = Column(Integer, default=8192)
     # JSON string: ["tool_calling", "vision", "streaming"]
-    capabilities = Column(String, default="[]")
+    capabilities = Column(String(1000), default="[]")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="model_configs")
@@ -73,11 +77,11 @@ class LearningProject(Base):
 
     __tablename__ = "learning_projects"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    name = Column(String, nullable=False)
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
-    color = Column(String, default="#4F46E5")
+    color = Column(String(20), default="#4F46E5")
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active_at = Column(DateTime, default=datetime.utcnow)
 
@@ -93,15 +97,15 @@ class KnowledgeNode(Base):
 
     __tablename__ = "knowledge_nodes"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    project_id = Column(String, ForeignKey("learning_projects.id"), nullable=False, index=True)
-    parent_id = Column(String, ForeignKey("knowledge_nodes.id"), nullable=True)
-    title = Column(String, nullable=False)
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    project_id = Column(String(36), ForeignKey("learning_projects.id"), nullable=False, index=True)
+    parent_id = Column(String(36), ForeignKey("knowledge_nodes.id"), nullable=True)
+    title = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     order = Column(Integer, default=0)
-    mastery_level = Column(String, default="not_started")  # not_started/learning/mastered
+    mastery_level = Column(String(30), default="not_started")  # not_started/learning/mastered
     # JSON string list of KnowledgeItem ids
-    linked_facts_ids = Column(String, default="[]")
+    linked_facts_ids = Column(String(4000), default="[]")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     project = relationship("LearningProject", back_populates="knowledge_nodes")
@@ -118,16 +122,16 @@ class KnowledgeItem(Base):
 
     __tablename__ = "knowledge_items"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    project_id = Column(String, ForeignKey("learning_projects.id"), nullable=False, index=True)
-    linked_node_id = Column(String, ForeignKey("knowledge_nodes.id"), nullable=True)
-    title = Column(String, nullable=False)
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    project_id = Column(String(36), ForeignKey("learning_projects.id"), nullable=False, index=True)
+    linked_node_id = Column(String(36), ForeignKey("knowledge_nodes.id"), nullable=True)
+    title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
-    subject = Column(String, nullable=True)
+    subject = Column(String(100), nullable=True)
     # JSON string list of tags
-    tags = Column(String, nullable=True)
-    source = Column(String, default="manual")  # manual/auto/detected
+    tags = Column(String(1000), nullable=True)
+    source = Column(String(30), default="manual")  # manual/auto/detected
     confidence = Column(Float, default=1.0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -139,9 +143,9 @@ class UserStyle(Base):
 
     __tablename__ = "user_styles"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    phrase = Column(String, nullable=False)
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    phrase = Column(String(200), nullable=False)
     context = Column(Text, nullable=True)
     frequency = Column(Integer, default=1)
     confidence = Column(Float, default=0.5)
@@ -153,11 +157,11 @@ class UserThinking(Base):
 
     __tablename__ = "user_thinkings"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    pattern = Column(String, nullable=False)
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    pattern = Column(String(200), nullable=False)
     example = Column(Text, nullable=True)
-    applicability = Column(String, nullable=True)
+    applicability = Column(String(100), nullable=True)
     confidence = Column(Float, default=0.5)
     last_used = Column(DateTime, default=datetime.utcnow)
 
@@ -167,11 +171,12 @@ class Persona(Base):
 
     __tablename__ = "personas"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    name = Column(String, nullable=False)
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    # 预设人格不属于任何用户，故允许 NULL；自定义人格必须归属用户
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True, index=True)
+    name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
-    source_type = Column(String, nullable=False)  # preset/imported_md/custom
+    source_type = Column(String(30), nullable=False)  # preset/imported_md/custom
     source_content = Column(Text, nullable=True)
     # JSON string: {"role": ..., "speaking_style": ..., "teaching_preferences": ...}
     parsed_prompt = Column(Text, nullable=True)
@@ -187,12 +192,12 @@ class ScheduledTask(Base):
 
     __tablename__ = "scheduled_tasks"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    project_id = Column(String, ForeignKey("learning_projects.id"), nullable=True)
-    name = Column(String, nullable=False)
-    cron_expr = Column(String, nullable=False)
-    task_type = Column(String, nullable=False)  # summarize/review_reminder/custom
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    project_id = Column(String(36), ForeignKey("learning_projects.id"), nullable=True)
+    name = Column(String(100), nullable=False)
+    cron_expr = Column(String(50), nullable=False)
+    task_type = Column(String(30), nullable=False)  # summarize/review_reminder/custom
     # JSON string of task config
     task_config = Column(Text, default="{}")
     is_active = Column(Boolean, default=True)
@@ -207,15 +212,15 @@ class Message(Base):
 
     __tablename__ = "messages"
 
-    id = Column(String, primary_key=True, default=_new_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    thread_id = Column(String, index=True, nullable=False)
-    role = Column(String, nullable=False)  # user/assistant/tool
+    id = Column(String(36), primary_key=True, default=_new_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    thread_id = Column(String(100), index=True, nullable=False)
+    role = Column(String(20), nullable=False)  # user/assistant/tool
     content = Column(Text, nullable=False)
     # lecture/definition/example_question/chat/answer/tool_result/summary
-    message_type = Column(String, default="chat")
-    project_id = Column(String, ForeignKey("learning_projects.id"), nullable=True)
-    persona_id = Column(String, ForeignKey("personas.id"), nullable=True)
+    message_type = Column(String(30), default="chat")
+    project_id = Column(String(36), ForeignKey("learning_projects.id"), nullable=True)
+    persona_id = Column(String(36), ForeignKey("personas.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="messages")

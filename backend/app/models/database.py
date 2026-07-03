@@ -1,7 +1,7 @@
-"""SQLAlchemy 数据库引擎与会话管理。
+"""SQLAlchemy 数据库引擎与会话管理（MySQL）。
 
 提供：
-- ``engine``：全局 SQLAlchemy 引擎（SQLite，关闭跨线程检查以支持 FastAPI 线程池）
+- ``engine``：全局 SQLAlchemy 引擎（MySQL，启用 pool_pre_ping 防止连接断开）
 - ``SessionLocal``：会话工厂
 - ``Base``：所有 ORM 模型的基类
 - ``get_db``：FastAPI 依赖注入函数
@@ -15,16 +15,14 @@ from app.config import get_settings
 
 settings = get_settings()
 
-# SQLite 需要关闭 check_same_thread，否则 FastAPI 的线程池会报错
-connect_args = (
-    {"check_same_thread": False}
-    if settings.database_url.startswith("sqlite")
-    else {}
-)
-
+# MySQL 不需要 check_same_thread；空 connect_args 即可
+# pool_pre_ping=True：每次借出连接前 ping 一下，避免拿到已断开的连接
+# pool_recycle=3600：连接闲置 1 小时后回收，防止 MySQL wait_timeout 主动断开
 engine = create_engine(
     settings.database_url,
-    connect_args=connect_args,
+    connect_args={},
+    pool_pre_ping=True,
+    pool_recycle=3600,
     echo=False,
 )
 

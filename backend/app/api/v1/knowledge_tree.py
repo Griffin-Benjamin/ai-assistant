@@ -9,3 +9,7 @@ Task 3 将在此实现完整的 RESTful 接口：
 - POST   /nodes/{id}/link   关联知识点
 - PUT    /nodes/{id}/mastery 更新掌握程度
 """
+from fastapi import APIRouter
+
+# 占位空路由，确保 main.py import 不报错；具体接口后续实现
+router = APIRouter()

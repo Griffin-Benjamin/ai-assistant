@@ -1,7 +1,7 @@
 [project]
 name = "ai-assistant-backend"
 version = "0.1.0"
-description = "AI 学习助手后端：LangChain + LangGraph + FastAPI + SQLite，支持用户风格克隆与三库分离"
+description = "AI 学习助手后端：LangChain + LangGraph + FastAPI + MySQL，支持用户风格克隆与三库分离"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110",
@@ -12,6 +12,7 @@ dependencies = [
     "loguru>=0.7",
     "python-dotenv>=1.0",
     "python-multipart>=0.0.9",
+    "pymysql>=1.1",
     "langchain>=0.3",
     "langchain-core>=0.3",
     "langchain-openai>=0.2",

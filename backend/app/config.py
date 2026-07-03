@@ -24,8 +24,8 @@ class Settings(BaseSettings):
 
     # ========== 数据库 ==========
     database_url: str = Field(
-        default="sqlite:///./ai_assistant.db",
-        description="SQLAlchemy 数据库连接串",
+        default="mysql+pymysql://root:123456@localhost:3306/ai_assistant?charset=utf8mb4",
+        description="MySQL 数据库连接串",
     )
 
     # ========== LLM 模型配置 ==========

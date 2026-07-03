@@ -238,7 +238,7 @@ def init_presets(db: Session) -> None:
             continue
 
         persona = Persona(
-            user_id="",  # 预设人格不属于任何具体用户
+            user_id=None,  # 预设人格不属于任何具体用户（NULL，避免 MySQL 外键约束冲突）
             name=preset["name"],
             description=preset["description"],
             source_type="preset",
