@@ -1,4 +1,4 @@
-"""学习助手 Agent 核心模块（Day 5：风格注入切 ChromaDB）。
+"""学习助手 Agent 核心模块（Day 6：Agentic RAG）。
 
 提供：
 - ``SYSTEM_PROMPT``：学习助手系统提示词（Identity + Instructions）
@@ -7,16 +7,18 @@
 - ``astream_agent``：以 stream_mode="messages" 异步流式生成回复
 - ``seed_mock_style``：向 kb_style（ChromaDB）注入 mock 风格样本
 
-Day 5 改造点（相对 Day 4）：
-1. 风格样本存储从 InMemoryStore → ChromaDB（kb_style collection，持久化）
-2. style_injector 改用 kb_manager.search_style 做语义检索（之前是 Store.search 精确匹配）
-3. seed_mock_style 改用 kb_manager.add_style_samples（写入 ChromaDB）
-4. Store（InMemoryStore）保留，用于 runtime.store 其他场景（如配置/画像）
+Day 6 改造点（相对 Day 5）：
+1. Agent 接入 RAG 工具：tools=[search_knowledge_base]（Agentic RAG）
+2. SYSTEM_PROMPT 增加 RAG 工具使用指引：何时调工具、何时直接回答
+3. astream_agent 改 stream_mode=["messages", "updates"]，让前端看到工具调用过程
 
 数据流：
-    用户消息 → agent.astream(stream_mode="messages")
+    用户消息 → agent.astream(stream_mode=["messages", "updates"])
     → style_injector 拦截模型调用：kb_manager.search_style 语义检索样本 → override system_prompt
-    → AsyncCheckpointer 自动读写历史 → LLM 逐 token 返回 → SSE yield 给前端
+    → LLM 决定是否调 search_knowledge_base 工具
+    → 调工具：从 kb_facts 检索 → ToolMessage 返回结果
+    → LLM 看结果生成最终回答（或再调一次工具换 query）
+    → AsyncCheckpointer 自动读写历史 → SSE yield 给前端
 """
 from __future__ import annotations
 
@@ -36,6 +38,7 @@ from loguru import logger
 
 from app.config import get_settings
 from app.services.kb_manager import kb_manager
+from app.tools.rag_tools import search_knowledge_base
 
 settings = get_settings()
 
@@ -53,9 +56,27 @@ SYSTEM_PROMPT = """你是「AI 学习助手」，一位个性化的学习陪伴 
 5. 如果用户说的不对，明确指出错误并给出正确答案
 6. 不知道就说不知道，不要编造
 
+【RAG 工具使用指引（Day 6）】
+你有一个工具 `search_knowledge_base`，可以从用户个人知识库检索客观知识点（错题/笔记/心得）。
+
+何时调用工具：
+- 用户问之前学过的知识（如"我之前笔记里怎么写的装饰器"）
+- 用户问的概念可能在已上传的学习资料中
+- 用户明确要求"查一下我的笔记"
+
+何时不调用工具（直接回答）：
+- 闲聊（如"今天怎么样"）
+- 通用知识（如"什么是 Python"）—— 直接用你内置知识回答
+- 实时信息（如"现在几点"）—— 你没有这个能力，告诉用户
+
+调用工具技巧：
+- query 用用户问题的核心关键词，可以同义改写
+- 如果第一次检索结果不够，可以换关键词再调一次
+- 工具返回结果后，结合用户问题给出针对性回答，引用笔记内容时要标注"你的笔记里写到..."
+
 【上下文 Context】
-当前是 Day 5 阶段，三库分离架构已就绪（kb_facts/kb_style/kb_thinking 用 ChromaDB 持久化）。
-风格注入 Middleware 从 kb_style 语义检索样本拼到 system_prompt。
+当前是 Day 6 阶段，Agentic RAG 已就绪（kb_facts 检索工具已挂载）。
+三库分离架构：kb_facts（@tool 检索）/ kb_style（style_injector 注入）/ kb_thinking（Day 8 注入）。
 注意：你可以正常读取当前会话的短期记忆（thread_id 隔离的对话历史）。
 """
 
@@ -229,7 +250,7 @@ class AgentManager:
 
         agent = create_agent(
             model=model,
-            tools=[],  # Day 6 接 RAG 检索工具
+            tools=[search_knowledge_base],  # Day 6：Agentic RAG 检索工具
             system_prompt=SYSTEM_PROMPT,
             checkpointer=self.checkpointer,
             store=_STORE,
