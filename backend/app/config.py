@@ -5,8 +5,13 @@
 """
 from functools import lru_cache
 
+from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# 先把 .env 所有变量加载到 os.environ，让 LangChain/LangSmith 能自动读到
+# （pydantic-settings 只填充 Settings 字段，不会泄露其他变量到 os.environ）
+load_dotenv()
 
 
 class Settings(BaseSettings):
@@ -24,8 +29,8 @@ class Settings(BaseSettings):
 
     # ========== 数据库 ==========
     database_url: str = Field(
-        default="mysql+pymysql://root:123456@localhost:3306/ai_assistant?charset=utf8mb4",
-        description="MySQL 数据库连接串",
+        default="sqlite:///./data/ai_assistant.db",
+        description="SQLite 数据库连接串（开发用，生产可换 Postgres）",
     )
 
     # ========== LLM 模型配置 ==========
@@ -62,6 +67,20 @@ class Settings(BaseSettings):
     log_level: str = Field(
         default="INFO",
         description="日志级别",
+    )
+
+    # ========== LangSmith 追踪 ==========
+    langsmith_api_key: str = Field(
+        default="",
+        description="LangSmith API Key，用于 Agent 调用链路追踪（留空则不上报）",
+    )
+    langsmith_tracing: bool = Field(
+        default=False,
+        description="是否开启 LangSmith 追踪，true 开启",
+    )
+    langsmith_project: str = Field(
+        default="ai-assistant",
+        description="LangSmith 项目名，用于在 GUI 分组查看",
     )
 
 

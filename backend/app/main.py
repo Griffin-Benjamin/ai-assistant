@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from app import __version__
-from app.api.v1 import knowledge_tree, personas, projects, tasks
+from app.api.v1 import chat, knowledge_tree, personas, projects, tasks
 from app.common.logger import get_logger, setup_logging
 from app.config import get_settings
 from app.models.database import Base, engine, get_db
@@ -90,3 +90,4 @@ app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"]
 app.include_router(knowledge_tree.router, prefix="/api/v1/knowledge-tree", tags=["knowledge-tree"])
 app.include_router(personas.router, prefix="/api/v1/personas", tags=["personas"])
 app.include_router(tasks.router, prefix="/api/v1/tasks", tags=["tasks"])
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
