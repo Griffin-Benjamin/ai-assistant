@@ -6,12 +6,18 @@
 3. 初始化 4 种预设人格
 4. 确保默认用户存在（暂无鉴权，projects 等业务接口使用 default-user）
 5. 注册 CORS 中间件与 API 路由
+6. lifespan：启动时初始化 AgentManager（异步 Checkpointer），关闭时清理连接
+
+Day 4 改造：新增 lifespan 管理 AsyncSqliteSaver 生命周期
 """
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from app import __version__
+from app.agents.learning_agent import agent_manager
 from app.api.v1 import chat, knowledge_tree, personas, projects, tasks
 from app.common.logger import get_logger, setup_logging
 from app.config import get_settings
@@ -59,14 +65,32 @@ try:
 finally:
     db.close()
 
-# 4. FastAPI 实例
+# 4. FastAPI lifespan：管理 AgentManager（AsyncSqliteSaver）生命周期
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """FastAPI lifespan：启动时初始化 AgentManager，关闭时清理连接。
+
+    Day 4 新增：AsyncSqliteSaver 必须在异步环境中初始化，
+    因此用 lifespan 在 FastAPI 启动时 await agent_manager.init()。
+    """
+    logger.info("lifespan 启动：初始化 AgentManager...")
+    await agent_manager.init()
+    logger.info("AgentManager 初始化完成，Agent 已就绪")
+    yield
+    logger.info("lifespan 关闭：清理 AgentManager 连接...")
+    await agent_manager.close()
+    logger.info("AgentManager 已关闭")
+
+
+# 5. FastAPI 实例
 app = FastAPI(
     title="AI 学习助手",
     version=__version__,
     description="LangChain + LangGraph 驱动的个性化学习助手，支持用户风格克隆与三库分离",
+    lifespan=lifespan,
 )
 
-# 5. CORS（前端 Web 端运行在 3782 端口）
+# 6. CORS（前端 Web 端运行在 3782 端口）
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -85,7 +109,7 @@ def health_check() -> dict:
     return {"status": "ok", "version": __version__}
 
 
-# 6. 业务路由
+# 7. 业务路由
 app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"])
 app.include_router(knowledge_tree.router, prefix="/api/v1/knowledge-tree", tags=["knowledge-tree"])
 app.include_router(personas.router, prefix="/api/v1/personas", tags=["personas"])

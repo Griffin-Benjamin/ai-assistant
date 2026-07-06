@@ -1,9 +1,14 @@
-"""对话路由：SSE 流式接口。
+"""对话路由：SSE 流式接口 + 会话管理（Day 4：异步改造 + 会话管理）。
 
 提供：
-- POST /stream   SSE 流式对话（核心接口，Day 2 交付物）
-- GET  /history  查询会话历史（Day 4 实现）
-- DELETE /{thread_id}  清空会话（Day 4 实现）
+- POST /stream   异步 SSE 流式对话（Day 4 改造为异步）
+- GET  /history  查询会话历史（Day 4 新增）
+- DELETE /{thread_id}  清空会话（Day 4 新增）
+
+Day 4 改造点：
+    - chat_stream 同步 → async def
+    - stream_agent → astream_agent（异步生成器）
+    - 新增 /history 和 DELETE /{thread_id} 会话管理接口
 
 SSE 协议落地形态：
     响应头 Content-Type: text/event-stream
@@ -12,11 +17,15 @@ SSE 协议落地形态：
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
-from app.agents.learning_agent import stream_agent
+from app.agents.learning_agent import (
+    astream_agent,
+    clear_chat_session,
+    get_chat_history,
+)
 from app.common.logger import get_logger
 
 logger = get_logger()
@@ -47,16 +56,40 @@ class ChatStreamEvent(BaseModel):
     content: str = Field(..., description="事件内容")
 
 
-# ========== SSE 流式对话接口 ==========
+class ChatHistoryMessage(BaseModel):
+    """历史消息项。"""
+
+    role: str = Field(..., description="消息角色：human/ai/system/tool")
+    content: str = Field(..., description="消息内容")
+    type: str = Field(..., description="消息类型名：HumanMessage/AIMessage/...")
+
+
+class ChatHistoryResponse(BaseModel):
+    """会话历史响应。"""
+
+    thread_id: str
+    messages: list[ChatHistoryMessage]
+    count: int
+
+
+class ChatClearResponse(BaseModel):
+    """清空会话响应。"""
+
+    thread_id: str
+    success: bool
+    message: str
+
+
+# ========== SSE 流式对话接口（Day 4：异步） ==========
 @router.post("/stream")
-def chat_stream(req: ChatStreamRequest) -> EventSourceResponse:
-    """SSE 流式对话接口。
+async def chat_stream(req: ChatStreamRequest) -> EventSourceResponse:
+    """异步 SSE 流式对话接口。
 
     数据流：
         前端 POST {message, thread_id}
-          → stream_agent(user_message, thread_id)
-            → agent.stream(stream_mode="messages")
-              → Checkpointer 自动读历史
+          → astream_agent(user_message, thread_id)  # 异步生成器
+            → agent.astream(stream_mode="messages") # 异步流式
+              → AsyncCheckpointer 自动读历史
               → LLM 逐 token 返回
           → 包装成 SSE event: data: {type:token, content:...}\\n\\n
           → 前端 ReadableStream 逐 chunk 渲染
@@ -68,21 +101,16 @@ def chat_stream(req: ChatStreamRequest) -> EventSourceResponse:
         EventSourceResponse: SSE 流式响应
 
     Note:
-        - thread_id 由前端生成（如 uuid4），存 localStorage
-        - 同一个 thread_id 多次调用 = 多轮对话（短期记忆）
-        - 不同 thread_id = 不同会话（互不影响）
+        - Day 4 起改为 async def，配合 AsyncSqliteSaver
+        - EventSourceResponse 接受异步生成器作为参数
     """
     logger.info(f"POST /chat/stream：thread_id={req.thread_id}, msg={req.message[:50]}...")
 
-    def event_generator():
-        """SSE 事件生成器。
-
-        yield 格式由 sse-starlette 包装：
-            yield {{"data": "..."}} → "data: ...\\n\\n"
-        """
+    async def event_generator():
+        """异步 SSE 事件生成器。"""
         try:
             # type=token: 逐 token 流式输出
-            for token in stream_agent(req.message, req.thread_id):
+            async for token in astream_agent(req.message, req.thread_id):
                 yield {"event": "token", "data": token}
 
             # type=done: 流结束信号
@@ -97,3 +125,60 @@ def chat_stream(req: ChatStreamRequest) -> EventSourceResponse:
             yield {"event": "error", "data": f"内部错误：{e}"}
 
     return EventSourceResponse(event_generator())
+
+
+# ========== 会话历史查询（Day 4 新增） ==========
+@router.get("/history", response_model=ChatHistoryResponse)
+async def chat_history(
+    thread_id: str = Query(..., description="会话唯一标识"),
+) -> ChatHistoryResponse:
+    """查询指定会话的历史消息（从 AsyncCheckpointer 读取）。
+
+    Args:
+        thread_id: 会话唯一标识
+
+    Returns:
+        ChatHistoryResponse: 含消息列表
+    """
+    logger.info(f"GET /chat/history：thread_id={thread_id}")
+    try:
+        messages = await get_chat_history(thread_id)
+        return ChatHistoryResponse(
+            thread_id=thread_id,
+            messages=[ChatHistoryMessage(**m) for m in messages],
+            count=len(messages),
+        )
+    except RuntimeError as e:
+        # AgentManager 未初始化
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.exception(f"查询历史失败：{e}")
+        raise HTTPException(status_code=500, detail=f"查询历史失败：{e}")
+
+
+# ========== 清空会话（Day 4 新增） ==========
+@router.delete("/{thread_id}", response_model=ChatClearResponse)
+async def clear_session(thread_id: str) -> ChatClearResponse:
+    """清空指定会话的短期记忆（从 AsyncCheckpointer 删除）。
+
+    Args:
+        thread_id: 会话唯一标识
+
+    Returns:
+        ChatClearResponse: 含删除结果
+    """
+    logger.info(f"DELETE /chat/{thread_id}")
+    try:
+        success = await clear_chat_session(thread_id)
+        return ChatClearResponse(
+            thread_id=thread_id,
+            success=success,
+            message="会话已清空" if success else "清空失败（会话可能不存在）",
+        )
+    except Exception as e:
+        logger.exception(f"清空会话失败：{e}")
+        return ChatClearResponse(
+            thread_id=thread_id,
+            success=False,
+            message=f"清空失败：{e}",
+        )
