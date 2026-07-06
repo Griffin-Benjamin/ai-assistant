@@ -23,6 +23,7 @@ dependencies = [
     "apscheduler>=3.10",
     "sse-starlette>=3.4.5",
     "aiosqlite>=0.22.1",
+    "langchain-chroma>=1.1.0",
 ]
 
 [project.optional-dependencies]
