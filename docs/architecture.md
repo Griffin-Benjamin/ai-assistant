@@ -28,7 +28,7 @@
 
 | 组件 | 选型 | 说明 |
 |------|------|------|
-| 数据库 | MySQL | 本地 root/123456 已可用，生产级 |
+| 数据库 | SQLite | 文件型零运维，本地开发即用；多 worker 部署需切 Postgres |
 | 缓存 | Redis | 本地已可用，会话/限流/热数据/任务队列 |
 | 向量库 | ChromaDB | 嵌入式零运维，生产可切 Qdrant |
 | 定时任务 | APScheduler | Python 标准，轻量 |
@@ -122,7 +122,7 @@ graph TB
     end
 
     subgraph "存储层"
-        MySQL[(MySQL<br/>业务数据)]
+        SQLite[(SQLite<br/>业务数据)]
         Redis[(Redis<br/>缓存/队列)]
         ChromaDB[(ChromaDB<br/>三库向量)]
     end
@@ -167,24 +167,24 @@ graph TB
     Svc_LLM --> LLM_Fast
     Svc_RAG --> LLM_Embed
     Svc_RAG --> ChromaDB
-    Svc_KB --> MySQL
+    Svc_KB --> SQLite
     Svc_KB --> ChromaDB
-    Svc_Persona --> MySQL
+    Svc_Persona --> SQLite
     Svc_Persona --> ChromaDB
-    Svc_Tree --> MySQL
-    Svc_Scheduler --> MySQL
+    Svc_Tree --> SQLite
+    Svc_Scheduler --> SQLite
     Svc_Scheduler --> Redis
     Svc_Cron --> LLM_Fast
-    Svc_Rule --> MySQL
+    Svc_Rule --> SQLite
 
     API_Chat --> Redis
-    API_Projects --> MySQL
-    API_KB --> MySQL
-    API_Tree --> MySQL
-    API_Personas --> MySQL
-    API_Tasks --> MySQL
-    API_Rules --> MySQL
-    API_Models --> MySQL
+    API_Projects --> SQLite
+    API_KB --> SQLite
+    API_Tree --> SQLite
+    API_Personas --> SQLite
+    API_Tasks --> SQLite
+    API_Rules --> SQLite
+    API_Models --> SQLite
 ```
 
 ---
@@ -408,7 +408,7 @@ ai-assistant/backend/app/
 │   └── style_extract_service.py # 风格抽取
 │
 ├── models/                    # 数据模型层
-│   ├── database.py            # MySQL + Redis + ChromaDB 连接
+│   ├── database.py            # SQLite + Redis + ChromaDB 连接
 │   └── schemas.py             # SQLModel 实体定义
 │
 └── common/                    # 公共模块
@@ -768,7 +768,7 @@ sequenceDiagram
     participant User as 用户
     participant UI as 对话页
     participant API as Personas API
-    participant DB as MySQL
+    participant DB as SQLite
     participant Agent as Agent
 
     User->>UI: 下拉选择「严格导师」
@@ -840,7 +840,7 @@ sequenceDiagram
     participant UI as 规则编辑页
     participant API as Rules API
     participant LLM as LLM (独立调用)
-    participant DB as MySQL
+    participant DB as SQLite
 
     User->>UI: 输入 "每天只有晚上 2 小时"
     UI->>API: POST /rules/generate<br/>{natural_language: ...}
@@ -933,7 +933,7 @@ graph TB
 | `deeptutor/agents/chat/agentic_pipeline.py` | [1-1301] | `app/agents/workflow.py`（LangGraph 替换） |
 | `deeptutor/agents/chat/agent_loop.py` | [1-755] | LangGraph 内置 loop |
 | `deeptutor/agents/chat/prompt_blocks.py` | [1-167] | `app/agents/prompts/` + `build_system_prompt` |
-| `deeptutor/agents/chat/session_manager.py` | [1-179] | MySQL Thread + Message 表 |
+| `deeptutor/agents/chat/session_manager.py` | [1-179] | SQLite Thread + Message 表 |
 | `deeptutor/agents/chat/capability.py` | [1-27] | `app/services/llm_factory.py` 能力检测 |
 | `deeptutor/agents/chat/prompts/zh/agentic_chat.yaml` | [1-93] | `app/agents/prompts/zh/core.yaml` |
 | `deeptutor/core/tool_protocol.py` | [122-153] | `app/agents/tools/ask_user.py` 复用 |
