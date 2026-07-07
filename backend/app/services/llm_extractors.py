@@ -160,7 +160,11 @@ async def extract_style_with_llm(
 
     try:
         llm = _build_llm()
-        structured_llm = llm.with_structured_output(StyleExtractionResult)
+        # method="function_calling"：用工具调用方式输出结构化 JSON
+        # DeepSeek 不支持默认的 response_format（json_schema），但支持 function calling
+        structured_llm = llm.with_structured_output(
+            StyleExtractionResult, method="function_calling"
+        )
 
         prompt = f"""请从以下对话历史中，抽取用户的语言风格样本（不是 AI 的风格，是用户的）。
 
@@ -235,7 +239,11 @@ async def summarize_with_llm(
 
     try:
         llm = _build_llm()
-        structured_llm = llm.with_structured_output(SummarizationResult)
+        # method="function_calling"：用工具调用方式输出结构化 JSON
+        # DeepSeek 不支持默认的 response_format（json_schema），但支持 function calling
+        structured_llm = llm.with_structured_output(
+            SummarizationResult, method="function_calling"
+        )
 
         prompt = f"""请从以下对话历史中，提取客观知识点（错题、笔记、心得）。
 
