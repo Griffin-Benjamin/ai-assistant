@@ -314,6 +314,29 @@ async def astream_agent(
             yield chunk.content
 
 
+# ========== 非流式调用（Day 8 新增：供 StateGraph 节点使用） ==========
+async def invoke_agent(
+    user_message: str,
+    thread_id: str,
+) -> str:
+    """非流式调用 Agent，返回完整回复字符串。
+
+    Day 8 用途：StateGraph 的 chat_node / style_reply_node 需要一次性拿到完整回复，
+    而不是流式 chunk。本函数内部消费 astream_agent，把所有 chunk 拼起来。
+
+    Args:
+        user_message: 用户输入
+        thread_id: 会话 ID
+
+    Returns:
+        str: 完整回复文本
+    """
+    chunks: list[str] = []
+    async for token in astream_agent(user_message, thread_id):
+        chunks.append(token)
+    return "".join(chunks)
+
+
 # ========== 会话管理（Day 4 新增） ==========
 async def get_chat_history(thread_id: str) -> list[dict]:
     """查询指定会话的历史消息（从 AsyncCheckpointer 读取）。
